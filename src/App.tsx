@@ -1,23 +1,27 @@
-import React from 'react'
-import './App.css'
+import React, { useContext } from 'react'
+import styled from 'styled-components'
+import Mint from './components/panels/Mint'
+import Preview from './components/panels/Preview'
+import ProjectExplorer from './components/panels/ProjectExplorer'
+import Setting from './components/panels/Setting'
+import Sidebar from './components/Sidebar'
+import { AppContext } from './contexts/AppContext'
+import Page from './types/Page'
 
-function App () {
+const AppContainer = styled.div`
+  height: 100%;
+`
+
+function App (): React.ReactElement {
+  const { appState, dispatchAppState } = useContext(AppContext)!
   return (
-    <div className="App">
-      <header className="App-header">
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AppContainer>
+      <Sidebar />
+      { appState.page === Page.PROJECT && <ProjectExplorer />}
+      { appState.page === Page.MINT && <Mint />}
+      { appState.page === Page.SETTING && <Setting />}
+      <Preview />
+    </AppContainer>
   )
 }
 
