@@ -11,7 +11,8 @@ const Root = styled.div`
   height: 100%;
   scrollbar-width: thin;
   overflow: hidden auto;
-  border-right: 2px solid rgb(244, 232, 229);
+  border-right: 2px solid rgb(234, 232, 229);
+  display: inline-block;
 `
 const Container = styled.div`
   width: 80px;

@@ -4,7 +4,12 @@
   margin: 0;
 }
 
+html {
+  font-family: Helvetica, sans-serif;
+}
+
 html, body, #root {
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }

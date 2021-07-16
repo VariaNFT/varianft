@@ -1,8 +1,8 @@
 import React, { useContext } from 'react'
 import styled from 'styled-components'
 import Mint from './components/panels/Mint'
-import Preview from './components/panels/Preview'
-import ProjectExplorer from './components/panels/ProjectExplorer'
+import Preview from './components/Preview'
+import Projects from './components/panels/Projects'
 import Setting from './components/panels/Setting'
 import Sidebar from './components/Sidebar'
 import { AppContext } from './contexts/AppContext'
@@ -17,7 +17,7 @@ function App (): React.ReactElement {
   return (
     <AppContainer>
       <Sidebar />
-      { appState.page === Page.PROJECT && <ProjectExplorer />}
+      { appState.page === Page.PROJECT && <Projects />}
       { appState.page === Page.MINT && <Mint />}
       { appState.page === Page.SETTING && <Setting />}
       <Preview />
