@@ -1,6 +1,6 @@
 import React, { useContext } from 'react'
 import styled, { css } from 'styled-components'
-import { AppContext } from '../contexts/AppContext'
+import { AppAction, AppContext } from '../contexts/AppContext'
 import { AiTwotoneFolderOpen } from 'react-icons/ai'
 import { GoGear } from 'react-icons/go'
 import { IoCreate, IoHelpCircle } from 'react-icons/io5'
@@ -59,7 +59,7 @@ const Button = styled.button<{ active: boolean }>`
   `}
 `
 
-const DocsButton = styled.button`
+const DocsButton = styled.a`
   background: transparent;
   border: none;
   text-align: center;
@@ -77,7 +77,6 @@ const DocsButton = styled.button`
   &:hover {
     svg {
       color: rgb(180, 180, 180);
-      background-color: rgb(240, 240, 240);
     }
   }
 `
@@ -87,19 +86,37 @@ export default function Sidebar (): React.ReactElement {
   return (
     <Root>
       <Container>
-        <Button active={appState.page === Page.PROJECT}>
+        <Button
+          active={appState.page === Page.PROJECT}
+          onClick={() => dispatchAppState({
+            action: AppAction.SWITCH_PAGE,
+            payload: { page: Page.PROJECT }
+          })}
+        >
           <AiTwotoneFolderOpen />
           <span>Projects</span>
         </Button>
-        <Button active={appState.page === Page.SETTING}>
+        <Button
+          active={appState.page === Page.SETTING}
+          onClick={() => dispatchAppState({
+            action: AppAction.SWITCH_PAGE,
+            payload: { page: Page.SETTING }
+          })}
+        >
           <GoGear />
           <span>Setting</span>
         </Button>
-        <Button active={appState.page === Page.MINT}>
+        <Button
+          active={appState.page === Page.MINT}
+          onClick={() => dispatchAppState({
+            action: AppAction.SWITCH_PAGE,
+            payload: { page: Page.MINT }
+          })}
+        >
           <IoCreate style={{ transform: 'translateX(1px) translateY(-2px)' }}/>
           <span>Mint</span>
         </Button>
-        <DocsButton>
+        <DocsButton href="https://docs.memberory.limaois.me/" target="_blank" referrerPolicy="no-referrer">
           <IoHelpCircle />
         </DocsButton>
       </Container>
