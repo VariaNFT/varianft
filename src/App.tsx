@@ -2,6 +2,7 @@ import React, { useContext } from 'react'
 import styled from 'styled-components'
 import Mint from './components/panels/Mint'
 import Preview from './components/Preview'
+import Toast from './components/Toast'
 import Projects from './components/panels/Projects'
 import Setting from './components/panels/Setting'
 import Sidebar from './components/Sidebar'
@@ -21,6 +22,7 @@ function App (): React.ReactElement {
       { appState.page === Page.MINT && <Mint />}
       { appState.page === Page.SETTING && <Setting />}
       <Preview />
+      <Toast />
     </AppContainer>
   )
 }

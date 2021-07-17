@@ -1,9 +1,11 @@
 import React, { createContext, Dispatch, useReducer } from 'react'
 import Page from '../types/Page'
+import { Color as AlertColor } from '@material-ui/lab/Alert'
 
 interface AppState {
   usingProject: number | undefined
   page: Page
+  toasts: { color: AlertColor, message: string }[]
 }
 
 export const AppContext = createContext<{
@@ -16,7 +18,9 @@ export const AppContext = createContext<{
 
 export enum AppAction {
   SWITCH_PAGE,
-  OPEN_PROJECT
+  OPEN_PROJECT,
+  PUSH_TOAST,
+  DROP_TOAST,
 }
 
 function reducer (state: AppState, event: {
@@ -28,6 +32,24 @@ function reducer (state: AppState, event: {
       return { ...state, page: event.payload.page }
     case AppAction.OPEN_PROJECT:
       return { ...state, usingProject: event.payload.projectId }
+    case AppAction.PUSH_TOAST:
+      return {
+        ...state,
+        toasts: [
+          ...state.toasts,
+          {
+            color: event.payload.color,
+            message: event.payload.message
+          }
+        ]
+      }
+    case AppAction.DROP_TOAST:
+      return {
+        ...state,
+        toasts: [
+          ...state.toasts.filter((_, index) => index !== event.payload.index)
+        ]
+      }
     default:
       console.error('Unknown action called ' + event.action)
       return state
@@ -38,6 +60,7 @@ export function AppContextProvider (props: {children: React.ReactElement}) {
   const [state, dispatch] = useReducer(reducer, {
     usingProject: undefined,
     page: Page.PROJECT,
+    toasts: [],
   })
   return (
     <AppContext.Provider value={{ appState: state, dispatchAppState: dispatch }}>
