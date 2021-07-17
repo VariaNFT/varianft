@@ -13,3 +13,11 @@ html, body, #root {
   height: 100%;
   overflow: hidden;
 }
+
+h2 {
+  font-weight: 300;
+}
+h3 {
+  font-weight: 200;
+  display: inline-block;
+}

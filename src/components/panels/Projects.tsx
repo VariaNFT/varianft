@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import { AiOutlinePlus } from 'react-icons/ai'
 
 const Root = styled.div`
-  width: 302px;
+  width: 402px;
   height: 100%;
   scrollbar-width: thin;
   overflow: hidden auto;
@@ -11,7 +11,7 @@ const Root = styled.div`
   display: inline-block;
 `
 const Container = styled.div`
-  width: 300px;
+  width: 400px;
   min-height: 100%;
   padding: 30px 20px 90px;
   position: relative;
@@ -19,7 +19,7 @@ const Container = styled.div`
 const ProjectCard = styled.button`
   background: transparent;
   width: 100%;
-  height: 150px;
+  height: 180px;
   border: 1px solid rgb(234, 232, 229);
   margin-top: 20px;
   transition: box-shadow 0.15s ease-in-out, transform 0.15s ease-in-out;
@@ -35,7 +35,7 @@ const PreviewImg = styled.div<{ img: string }>`
   background-size: contain;
   background-repeat: no-repeat;
   width: 100%;
-  height: 120px;
+  height: 150px;
 `
 const ProjectInfo = styled.div`
   width: 100%;

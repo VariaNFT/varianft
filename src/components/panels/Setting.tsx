@@ -2,7 +2,7 @@ import React from 'react'
 import styled from 'styled-components'
 
 const Root = styled.div`
-  width: 302px;
+  width: 402px;
   height: 100%;
   scrollbar-width: thin;
   overflow: hidden auto;
@@ -10,7 +10,7 @@ const Root = styled.div`
   display: inline-block;
 `
 const Container = styled.div`
-  width: 300px;
+  width: 400px;
   min-height: 100%;
   padding: 30px 20px 90px;
   position: relative;
