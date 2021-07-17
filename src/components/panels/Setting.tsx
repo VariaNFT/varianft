@@ -1,5 +1,5 @@
 import React from 'react'
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 import {
   Button,
   Select,
@@ -48,14 +48,27 @@ const InputControl = styled.div`
   text-align: right;
   width: 70%;
 `
-const StyledButton = styled(Button)`
-  margin-left: 10px !important;
-  background: rgb(169, 221, 214) !important;
-  color: rgb(38, 95, 88) !important;
+const StyledButton = styled(Button)<{ variant: 'standard' | 'outlined' | 'contained' }>`
+  ${({ variant }) => variant === 'contained' && css`
+    margin-left: 10px !important;
+    background: rgb(169, 221, 214) !important;
+    color: rgb(38, 95, 88) !important;
 
-  &:hover {
-    background: rgb(95, 191, 178) !important;
-  }
+    &:hover {
+      background: rgb(95, 191, 178) !important;
+    }
+  `}
+  ${({ variant }) => variant === 'outlined' && css`
+    margin-left: 10px !important;
+    background: transparent !important;
+    color: rgb(38, 95, 88) !important;
+    border-color: rgb(60, 150, 139) !important;
+
+    &:hover {
+      background: rgba(38, 95, 88, 0.04) !important;
+      border-color: rgb(38, 95, 88) !important;
+    }
+  `}
 `
 
 export default function Setting (): React.ReactElement {
@@ -68,7 +81,7 @@ export default function Setting (): React.ReactElement {
             Template:
           </InputLabel>
           <InputControl>
-            Some.svg
+            <StyledButton variant="outlined" size="small">Open</StyledButton>
             <StyledButton variant="contained" size="small">Select</StyledButton>
           </InputControl>
         </InputRow>
@@ -77,7 +90,7 @@ export default function Setting (): React.ReactElement {
             Data:
           </InputLabel>
           <InputControl>
-            Some.csv
+            <StyledButton variant="outlined" size="small">Open</StyledButton>
             <StyledButton variant="contained" color="primary" size="small">Select</StyledButton>
           </InputControl>
         </InputRow>
