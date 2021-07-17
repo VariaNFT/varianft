@@ -14,7 +14,6 @@ import {
   TableCell,
   TableBody,
 } from '@material-ui/core'
-import { MdOpenInNew } from 'react-icons/md'
 import { AiOutlinePlus } from 'react-icons/ai'
 import { IoHelpCircleOutline } from 'react-icons/io5'
 

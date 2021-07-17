@@ -1,6 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import { AiOutlinePlus } from 'react-icons/ai'
+import { Card } from '@material-ui/core'
 
 const Root = styled.div`
   width: 402px;
@@ -22,10 +23,9 @@ const ProjectCard = styled.button`
   height: 180px;
   border: 1px solid rgb(234, 232, 229);
   margin-top: 20px;
-  transition: box-shadow 0.15s ease-in-out, transform 0.15s ease-in-out;
+  transition: transform 0.15s ease-in-out !important;
 
   &:hover {
-    box-shadow: 2px 2px 2px rgb(234, 232, 229);
     transform: scale(1.01);
   }
 `
@@ -51,10 +51,9 @@ const CreateProjectButton = styled.button`
   height: 40px;
   border: 1px solid rgb(234, 232, 229);
   margin-top: 20px;
-  transition: box-shadow 0.15s ease-in-out, transform 0.15s ease-in-out;
+  transition: transform 0.15s ease-in-out !important;
 
   &:hover {
-    box-shadow: 2px 2px 2px rgb(234, 232, 229);
     transform: scale(1.01);
   }
 
@@ -68,17 +67,17 @@ export default function Projects (): React.ReactElement {
     <Root>
       <Container>
         <h2 style={{ marginBottom: '10px' }}>Projects</h2>
-        <ProjectCard>
+        <Card component={ProjectCard}>
           <PreviewImg img="https://i.imgur.com/pM68iou.jpeg"/>
           <ProjectInfo>Project Name</ProjectInfo>
-        </ProjectCard>
-        <ProjectCard>
+        </Card>
+        <Card component={ProjectCard}>
           <PreviewImg img="https://i.imgur.com/pM68iou.jpeg"/>
           <ProjectInfo>Project Name</ProjectInfo>
-        </ProjectCard>
-        <CreateProjectButton>
+        </Card>
+        <Card component={CreateProjectButton}>
           <AiOutlinePlus /> <span>Create Project</span>
-        </CreateProjectButton>
+        </Card>
       </Container>
     </Root>
   )
