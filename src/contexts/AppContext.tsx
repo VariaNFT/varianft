@@ -3,8 +3,6 @@ import Page from '../types/Page'
 import { Project } from '../types/Project'
 
 interface AppState {
-  projects: Project[]
-  records: Object[]
   page: Page
 }
 
@@ -35,8 +33,6 @@ function reducer (state: AppState, event: {
 
 export function AppContextProvider (props: {children: React.ReactElement}) {
   const [state, dispatch] = useReducer(reducer, {
-    projects: [],
-    records: [],
     page: Page.PROJECT
   })
   return (
