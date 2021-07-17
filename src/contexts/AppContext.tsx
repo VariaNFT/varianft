@@ -1,8 +1,8 @@
 import React, { createContext, Dispatch, useReducer } from 'react'
 import Page from '../types/Page'
-import { Project } from '../types/Project'
 
 interface AppState {
+  usingProject: number | undefined
   page: Page
 }
 
@@ -15,7 +15,8 @@ export const AppContext = createContext<{
 } | undefined>(undefined)
 
 export enum AppAction {
-  SWITCH_PAGE
+  SWITCH_PAGE,
+  OPEN_PROJECT
 }
 
 function reducer (state: AppState, event: {
@@ -25,6 +26,8 @@ function reducer (state: AppState, event: {
   switch (event.action) {
     case AppAction.SWITCH_PAGE:
       return { ...state, page: event.payload.page }
+    case AppAction.OPEN_PROJECT:
+      return { ...state, usingProject: event.payload.projectId }
     default:
       console.error('Unknown action called ' + event.action)
       return state
@@ -33,7 +36,8 @@ function reducer (state: AppState, event: {
 
 export function AppContextProvider (props: {children: React.ReactElement}) {
   const [state, dispatch] = useReducer(reducer, {
-    page: Page.PROJECT
+    usingProject: undefined,
+    page: Page.PROJECT,
   })
   return (
     <AppContext.Provider value={{ appState: state, dispatchAppState: dispatch }}>

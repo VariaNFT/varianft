@@ -1,7 +1,10 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import styled from 'styled-components'
 import { AiOutlinePlus } from 'react-icons/ai'
 import { Card } from '@material-ui/core'
+import { DatabaseContext } from '../../contexts/DatabaseContext'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { AppAction, AppContext } from '../../contexts/AppContext'
 
 const Root = styled.div`
   width: 402px;
@@ -24,6 +27,7 @@ const ProjectCard = styled.button`
   border: 1px solid rgb(234, 232, 229);
   margin-top: 20px;
   transition: transform 0.15s ease-in-out !important;
+  cursor: pointer;
 
   &:hover {
     transform: scale(1.01);
@@ -52,6 +56,7 @@ const CreateProjectButton = styled.button`
   border: 1px solid rgb(234, 232, 229);
   margin-top: 20px;
   transition: transform 0.15s ease-in-out !important;
+  cursor: pointer;
 
   &:hover {
     transform: scale(1.01);
@@ -63,18 +68,25 @@ const CreateProjectButton = styled.button`
 `
 
 export default function Projects (): React.ReactElement {
+  const db = useContext(DatabaseContext)!
+  const { dispatchAppState } = useContext(AppContext)!
+  const projects = useLiveQuery(
+    () => db.projects.toArray()
+  )
+
   return (
     <Root>
       <Container>
         <h2 style={{ marginBottom: '10px' }}>Projects</h2>
-        <Card component={ProjectCard}>
-          <PreviewImg img="https://i.imgur.com/pM68iou.jpeg"/>
-          <ProjectInfo>Project Name</ProjectInfo>
-        </Card>
-        <Card component={ProjectCard}>
-          <PreviewImg img="https://i.imgur.com/pM68iou.jpeg"/>
-          <ProjectInfo>Project Name</ProjectInfo>
-        </Card>
+        {projects?.map(project => (
+          <Card component={ProjectCard} key={project.id} onClick={() => dispatchAppState({
+            action: AppAction.OPEN_PROJECT,
+            payload: { projectId: project.id }
+          })}>
+            <PreviewImg img={project.preview}/>
+            <ProjectInfo>{project.name}</ProjectInfo>
+          </Card>
+        ))}
         <Card component={CreateProjectButton}>
           <AiOutlinePlus /> <span>Create Project</span>
         </Card>

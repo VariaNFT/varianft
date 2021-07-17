@@ -16,6 +16,25 @@ class Database extends Dexie {
 
     this.projects = this.table('projects')
     this.collections = this.table('collections')
+
+    this.on('populate', async () => {
+      if ((await this.projects.toArray()).length === 0) {
+        await this.projects.add({
+          name: 'Test Project',
+          preview: 'https://i.imgur.com/pM68iou.jpeg',
+          svg: `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+              <path d="M30,1h40l29,29v40l-29,29h-40l-29-29v-40z" stroke="#000" fill="none"/>
+              <path d="M31,3h38l28,28v38l-28,28h-38l-28-28v-38z" fill="#a23"/>
+              <text x="50" y="68" font-size="48" fill="#FFF" text-anchor="middle"><![CDATA[410]]></text>
+            </svg>
+          `,
+          csv: [{}],
+          attributes: {},
+          collection: -1,
+        })
+      }
+    })
   }
 }
 
@@ -24,7 +43,7 @@ export interface ProjectModel {
   name: string
   preview: string // Data URL
   svg: string // SVG Element in string
-  csv: Array<{ [column: string]: string }>[]
+  csv: Array<{ [column: string]: string }>
   attributes: { [name: string]: string } // Template
   collection: number
 }
