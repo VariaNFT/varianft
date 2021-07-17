@@ -37,7 +37,6 @@ const Header = styled.div`
   margin-bottom: 20px;
 `
 const Selector = styled.div`
-  transform: translateY(-3px);
 `
 const SelectorButton = styled.button`
   background: transparent;
@@ -82,7 +81,7 @@ export default function Mint (): React.ReactElement {
               <BiChevronLeft />
             </SelectorButton>
             <TextField
-              style={{ width: '4rem' }}
+              style={{ width: '4rem', transform: 'translateY(-4px)' }}
               size="small"
               InputProps={{ endAdornment: <InputAdornment position="end"> / 10</InputAdornment> }}
             />
@@ -100,8 +99,8 @@ export default function Mint (): React.ReactElement {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Column</TableCell>
-                    <TableCell>Value</TableCell>
+                    <TableCell style={{ fontWeight: 700 }}>Column</TableCell>
+                    <TableCell style={{ fontWeight: 700 }}>Value</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -114,15 +113,15 @@ export default function Mint (): React.ReactElement {
             </TableContainer>
           </Section>
           <Section>
-            <Tooltip title="Attributes will be applie to token" placement="right">
+            <Tooltip title="Attributes will be applied to token" placement="right">
               <h3>Metadata</h3>
             </Tooltip>
             <TableContainer component={Paper}>
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Attribute</TableCell>
-                    <TableCell>Value</TableCell>
+                    <TableCell style={{ fontWeight: 700 }}>Attribute</TableCell>
+                    <TableCell style={{ fontWeight: 700 }}>Value</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -130,14 +129,6 @@ export default function Mint (): React.ReactElement {
                     <TableCell>Name</TableCell>
                     <TableCell>Bill</TableCell>
                   </TableRow>
-                  {/* <TableRow key={'a'}>
-                    <TableCell>
-                      <a onClick={() => alert('C')} style={{ fontStyle: 'italic', fontSize: '0.825rem', opacity: '0.95' }}>
-                        <AiOutlinePlus style={{ transform: 'translateY(2px)' }} /> <span>Add Attribute</span>
-                      </a>
-                    </TableCell>
-                    <TableCell></TableCell>
-                  </TableRow> */}
                 </TableBody>
               </Table>
             </TableContainer>
