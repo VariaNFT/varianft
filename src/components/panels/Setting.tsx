@@ -83,7 +83,14 @@ export default function Setting (): React.ReactElement {
             <Select
               style={{ width: '75%' }}
             >
-              <MenuItem>Thirty</MenuItem>
+              <MenuItem> {/* Only show for Ropsten and Rinkeby */}
+                <Tooltip title="Rarible Protocol provides a contract everyone can mint zir token. By using Rarible, you won't need to deploy your own contract, but the token name and symbol will use Rarible" placement="right">
+                  <span>
+                    Rarible
+                    <IoHelpCircleOutline style={{ marginLeft: '0.5rem', transform: 'translateY(3px)' }} />
+                  </span>
+                </Tooltip>
+              </MenuItem>
               <MenuItem onClick={() => alert()}><em>Create New Collection</em></MenuItem>
             </Select>
           </InputControl>
@@ -104,13 +111,16 @@ export default function Setting (): React.ReactElement {
           </InputLabel>
           <InputControl style={{ width: '100%', marginTop: '10px' }}>
             <TableContainer component={Paper}>
-              <Table>
+              <Table size="small">
                 <TableHead>
                   <TableRow>
                     <TableCell style={{ width: '10rem', fontWeight: 700 }}>Attribute</TableCell>
                     <TableCell style={{ fontWeight: 700 }}>
-                      <Tooltip title="You can use {<column>} to embed dynamic content" placement="right">
-                        <span>Value</span>
+                      <Tooltip title="You can use {<column>} to embed dynamic content from csv file" placement="right">
+                        <span>
+                          Value
+                          <IoHelpCircleOutline style={{ marginLeft: '0.5rem', transform: 'translateY(3px)' }} />
+                        </span>
                       </Tooltip>
                     </TableCell>
                   </TableRow>
@@ -128,6 +138,16 @@ export default function Setting (): React.ReactElement {
                   </TableRow>
                   <TableRow>
                     <TableCell>Description</TableCell>
+                    <TableCell>
+                      <TextField
+                        multiline
+                        maxRows={4}
+                        size="small"
+                      />
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Token URI</TableCell>
                     <TableCell>
                       <TextField
                         multiline

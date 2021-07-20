@@ -96,7 +96,7 @@ export default function Mint (): React.ReactElement {
               <h3>Data</h3>
             </Tooltip>
             <TableContainer component={Paper}>
-              <Table>
+              <Table size="small">
                 <TableHead>
                   <TableRow>
                     <TableCell style={{ fontWeight: 700 }}>Column</TableCell>
@@ -117,7 +117,7 @@ export default function Mint (): React.ReactElement {
               <h3>Metadata</h3>
             </Tooltip>
             <TableContainer component={Paper}>
-              <Table>
+              <Table size="small">
                 <TableHead>
                   <TableRow>
                     <TableCell style={{ fontWeight: 700 }}>Attribute</TableCell>
