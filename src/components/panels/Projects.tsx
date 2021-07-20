@@ -1,10 +1,19 @@
-import React, { useContext } from 'react'
+import React, { useContext, useState } from 'react'
 import styled from 'styled-components'
 import { AiOutlinePlus } from 'react-icons/ai'
-import { Card } from '@material-ui/core'
+import {
+  Card,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  TextField,
+  DialogActions,
+  Button,
+} from '@material-ui/core'
 import { DatabaseContext } from '../../contexts/DatabaseContext'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { AppAction, AppContext } from '../../contexts/AppContext'
+import Page from '../../types/Page'
 
 const Root = styled.div`
   width: 402px;
@@ -73,6 +82,52 @@ export default function Projects (): React.ReactElement {
   const projects = useLiveQuery(
     () => db.projects.toArray()
   )
+  const [openForm, setOpenForm] = useState(false)
+  const [newProjectName, setNewProjectName] = useState('')
+
+  function createProject () {
+    db.projects.add({
+      name: newProjectName,
+      preview: 'https://i.imgur.com/pM68iou.jpeg', // Default preview img
+      svg: `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+          <path d="M30,1h40l29,29v40l-29,29h-40l-29-29v-40z" stroke="#000" fill="none"/>
+          <path d="M31,3h38l28,28v38l-28,28h-38l-28-28v-38z" fill="#a23"/>
+          <text x="50" y="68" font-size="48" fill="#FFF" text-anchor="middle"><![CDATA[410]]></text>
+        </svg>
+      `, // Default SVG Placeholder
+      csv: [{}],
+      attributes: {},
+      collection: -1,
+    }).then(id => {
+      dispatchAppState({
+        action: AppAction.OPEN_PROJECT,
+        payload: { projectId: id }
+      })
+      dispatchAppState({
+        action: AppAction.SWITCH_PAGE,
+        payload: { page: Page.SETTING }
+      })
+      setNewProjectName('')
+      dispatchAppState({
+        action: AppAction.PUSH_TOAST,
+        payload: {
+          color: 'success',
+          message: 'Successfully Created Project!'
+        }
+      })
+    }).catch(err => {
+      setOpenForm(false)
+      console.error(err)
+      dispatchAppState({
+        action: AppAction.PUSH_TOAST,
+        payload: {
+          color: 'error',
+          message: 'Something Went Wrong!'
+        }
+      })
+    })
+  }
 
   return (
     <Root>
@@ -87,10 +142,30 @@ export default function Projects (): React.ReactElement {
             <ProjectInfo>{project.name}</ProjectInfo>
           </Card>
         ))}
-        <Card component={CreateProjectButton}>
+        <Card component={CreateProjectButton} onClick={() => setOpenForm(true)}>
           <AiOutlinePlus /> <span>Create Project</span>
         </Card>
       </Container>
+      <Dialog open={openForm} onClose={() => setOpenForm(false)} scroll="paper" fullWidth={true}>
+        <DialogTitle>Create Project</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            label="Project Name"
+            fullWidth
+            value={newProjectName}
+            onChange={(event) => setNewProjectName(event.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button color="default" onClick={() => setOpenForm(false)}>
+            Cancel
+          </Button>
+          <Button color="primary" onClick={createProject}>
+            Create
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Root>
   )
 }
