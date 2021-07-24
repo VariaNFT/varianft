@@ -1,4 +1,5 @@
-import React, { createContext, Dispatch, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect } from 'react'
+import { AppAction, AppContext } from './AppContext'
 import { DatabaseContext } from './DatabaseContext'
 
 export interface ProjectState {
@@ -20,7 +21,9 @@ export const ProjectContext = createContext<{
     } | undefined>(undefined)
 
 export function ProjectContextProvider (props: {children: React.ReactElement}) {
+  const [inited, setInited] = useState(false)
   const db = useContext(DatabaseContext)!
+  const { dispatchAppState } = useContext(AppContext)!
   const [state, setState] = useState<ProjectState>({
     id: -1,
     name: '',
@@ -44,8 +47,20 @@ export function ProjectContextProvider (props: {children: React.ReactElement}) {
   }
 
   useEffect(() => {
-    console.log(state)
+    if (!inited) return setInited(true)
+    db.projects.update(state, state).then(status => {
+      if (status === 0) {
+        dispatchAppState({
+          action: AppAction.PUSH_TOAST,
+          payload: {
+            color: 'error',
+            message: 'You haven\'t open a project yet!'
+          }
+        })
+      }
+    })
   }, [state])
+
   return (
     <ProjectContext.Provider value={{
       projectState: state,
