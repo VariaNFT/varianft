@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { ChangeEvent, useContext, useState, useEffect } from 'react'
 import styled, { css } from 'styled-components'
 import {
   Button,
@@ -16,6 +16,7 @@ import {
 } from '@material-ui/core'
 import { AiOutlinePlus } from 'react-icons/ai'
 import { IoHelpCircleOutline } from 'react-icons/io5'
+import { ProjectContext, ProjectState } from '../../contexts/ProjectContext'
 
 const Root = styled.div`
   width: 402px;
@@ -53,6 +54,45 @@ const InputControl = styled.div`
 `
 
 export default function Setting (): React.ReactElement {
+  const { projectState, setProjectState } = useContext(ProjectContext)!
+  const [attributes, setAttributes] = useState<Array<[string, string]>>(Object.entries(projectState.attributes))
+
+  useEffect(() => {
+    const newAttributes = Object.fromEntries(attributes)
+    setProjectState((prev) => ({
+      ...prev,
+      attributes: newAttributes,
+    }))
+  }, [JSON.stringify(attributes)])
+
+  function handleAttributeKeyChange (index: number) {
+    return (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const copy = [...attributes]
+      copy[index][0] = event.target.value
+      setAttributes(copy)
+    }
+  }
+
+  function handleAttributeValueChange (index: number) {
+    return (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const copy = [...attributes]
+      copy[index][1] = event.target.value
+      setAttributes(copy)
+    }
+  }
+
+  function handleRequiredAttributeValueChange (name: string) {
+    return (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setProjectState((prev) => {
+        const { attributes } = prev
+        attributes[name] = event.target.value
+        return {
+          ...prev,
+          attributes,
+        }
+      })
+    }
+  }
   return (
     <Root>
       <Container>
@@ -62,7 +102,13 @@ export default function Setting (): React.ReactElement {
             Template:
           </InputLabel>
           <InputControl>
-            <Button color="primary" variant="outlined" size="small">Open</Button>
+            <Button
+              color="primary"
+              variant="outlined"
+              size="small"
+              download="template.svg"
+              href={'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(projectState.svg)}
+            >Open</Button>
             <Button color="primary" variant="contained" size="small">Select</Button>
           </InputControl>
         </InputRow>
@@ -71,7 +117,13 @@ export default function Setting (): React.ReactElement {
             Data:
           </InputLabel>
           <InputControl>
-            <Button color="primary" variant="outlined" size="small">Open</Button>
+            <Button
+              color="primary"
+              variant="outlined"
+              size="small"
+              download="data.csv"
+              href={'data:text/csv;charset=utf-8,' + encodeURIComponent(projectState.csv)}
+            >Open</Button>
             <Button color="primary" variant="contained" size="small">Select</Button>
           </InputControl>
         </InputRow>
@@ -133,6 +185,8 @@ export default function Setting (): React.ReactElement {
                         multiline
                         maxRows={4}
                         size="small"
+                        value={projectState.attributes.name}
+                        onChange={handleRequiredAttributeValueChange('name')}
                       />
                     </TableCell>
                   </TableRow>
@@ -143,37 +197,36 @@ export default function Setting (): React.ReactElement {
                         multiline
                         maxRows={4}
                         size="small"
+                        value={projectState.attributes.description}
+                        onChange={handleRequiredAttributeValueChange('description')}
                       />
                     </TableCell>
                   </TableRow>
-                  <TableRow>
-                    <TableCell>Token URI</TableCell>
-                    <TableCell>
-                      <TextField
-                        multiline
-                        maxRows={4}
-                        size="small"
-                      />
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>
-                      <TextField
-                        defaultValue="Owner"
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        multiline
-                        maxRows={4}
-                        size="small"
-                      />
-                    </TableCell>
-                  </TableRow>
+                  {attributes.map((entry, index) =>
+                    ['name', 'description', 'token_uri'].includes(entry[0])
+                      ? null
+                      : (<TableRow key={index}>
+                          <TableCell>
+                            <TextField
+                              value={entry[0]}
+                              size="small"
+                              onChange={handleAttributeKeyChange(index)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <TextField
+                              multiline
+                              maxRows={4}
+                              size="small"
+                              value={entry[1]}
+                              onChange={handleAttributeValueChange(index)}
+                            />
+                          </TableCell>
+                        </TableRow>)
+                  )}
                   <TableRow>
                     <TableCell colSpan={2}>
-                      <a onClick={() => alert('C')} style={{ fontStyle: 'italic', fontSize: '0.825rem', opacity: '0.95' }}>
+                      <a onClick={() => setAttributes((prev) => ([...prev, ['Attr', 'Value']])) } style={{ fontStyle: 'italic', fontSize: '0.825rem', opacity: '0.95' }}>
                         <AiOutlinePlus style={{ transform: 'translateY(2px)' }} /> <span>Add Attribute</span>
                       </a>
                     </TableCell>
