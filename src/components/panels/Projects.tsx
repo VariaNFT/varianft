@@ -14,6 +14,7 @@ import { DatabaseContext } from '../../contexts/DatabaseContext'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { AppAction, AppContext } from '../../contexts/AppContext'
 import Page from '../../types/Page'
+import { ProjectContext } from '../../contexts/ProjectContext'
 
 const Root = styled.div`
   width: 402px;
@@ -79,6 +80,7 @@ const CreateProjectButton = styled.button`
 export default function Projects (): React.ReactElement {
   const db = useContext(DatabaseContext)!
   const { dispatchAppState } = useContext(AppContext)!
+  const { loadProject } = useContext(ProjectContext)!
   const projects = useLiveQuery(
     () => db.projects.toArray()
   )
@@ -96,7 +98,8 @@ export default function Projects (): React.ReactElement {
           <text x="50" y="68" font-size="48" fill="#FFF" text-anchor="middle"><![CDATA[410]]></text>
         </svg>
       `, // Default SVG Placeholder
-      csv: [{}],
+      csv: '',
+      data: [],
       attributes: {},
       collection: -1,
     }).then(id => {
@@ -116,6 +119,7 @@ export default function Projects (): React.ReactElement {
           message: 'Successfully Created Project!'
         }
       })
+      loadProject(id)
     }).catch(err => {
       setOpenForm(false)
       console.error(err)
@@ -134,10 +138,13 @@ export default function Projects (): React.ReactElement {
       <Container>
         <h2 style={{ marginBottom: '10px' }}>Projects</h2>
         {projects?.map(project => (
-          <Card component={ProjectCard} key={project.id} onClick={() => dispatchAppState({
-            action: AppAction.OPEN_PROJECT,
-            payload: { projectId: project.id }
-          })}>
+          <Card component={ProjectCard} key={project.id} onClick={() => {
+            dispatchAppState({
+              action: AppAction.OPEN_PROJECT,
+              payload: { projectId: project.id }
+            })
+            loadProject(project.id!)
+          }}>
             <PreviewImg img={project.preview}/>
             <ProjectInfo>{project.name}</ProjectInfo>
           </Card>

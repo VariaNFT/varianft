@@ -3,14 +3,14 @@ import Dexie from 'dexie'
 
 export const DatabaseContext = createContext<Database | undefined>(undefined)
 
-class Database extends Dexie {
+export class Database extends Dexie {
   projects: Dexie.Table<ProjectModel, number>
   collections: Dexie.Table<CollectionModel, number>
 
   constructor () {
-    super('Memberory')
+    super('VariaNFT')
     this.version(1).stores({
-      projects: '++id,name,preview,svg,csv,attributes,collection',
+      projects: '++id,name,preview,svg,csv,data,attributes,collection',
       collections: '++id,name,address',
     })
 
@@ -29,7 +29,8 @@ class Database extends Dexie {
               <text x="50" y="68" font-size="48" fill="#FFF" text-anchor="middle"><![CDATA[410]]></text>
             </svg>
           `,
-          csv: [{}],
+          csv: '',
+          data: [],
           attributes: {},
           collection: -1,
         })
@@ -43,7 +44,8 @@ export interface ProjectModel {
   name: string
   preview: string // Data URL
   svg: string // SVG Element in string
-  csv: Array<{ [column: string]: string }>
+  csv: string // Original csv file
+  data: Array<{ [column: string]: string }> // Parsed records
   attributes: { [name: string]: string } // Template
   collection: number
 }
