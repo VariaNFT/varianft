@@ -24,8 +24,8 @@ const PreviewerContainer = styled.div`
 `
 
 export default function Preview (): React.ReactElement {
-  const previewer = useRef(null)
-  const { projectState } = useContext(ProjectContext)!
+  const previewer = useRef<HTMLDivElement>(null)
+  const { projectState, setProjectState } = useContext(ProjectContext)!
 
   // TODO: Replace with placeholder image
   const [svgContent, setSvgContent] = useState(`
@@ -51,7 +51,7 @@ export default function Preview (): React.ReactElement {
     })
 
     // Replace Image
-    const $svg = $(copy)
+    const $svg = $($.parseXML(copy))
     if (!$svg) return // TODO: Replace preview with error message image
 
     $svg.find('image').each((_, element) => {
@@ -61,9 +61,26 @@ export default function Preview (): React.ReactElement {
         $element.attr('href', data[element.id])
       }
     })
+    const svgElement = $svg.find('svg')[0]
+    setSvgContent(svgElement.outerHTML)
 
-    setSvgContent($svg[0].outerHTML)
-  }, [projectState])
+    // Update preview image
+    if (!previewer.current) return
+    const svgDataURL = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgElement.outerHTML)
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      const context = canvas.getContext('2d')
+      canvas.width = img.width
+      canvas.height = img.height
+      context?.drawImage(img, 0, 0)
+      setProjectState(prev => ({
+        ...prev,
+        preview: canvas.toDataURL()
+      }))
+    }
+    img.src = svgDataURL
+  }, [projectState.usingData, projectState.data, projectState.svg])
 
   return (
     <Root>
