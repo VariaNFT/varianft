@@ -1,5 +1,5 @@
-import React, { ChangeEvent, useContext, useState, useEffect } from 'react'
-import styled, { css } from 'styled-components'
+import React, { ChangeEvent, useContext, useState, useEffect, useRef, RefObject } from 'react'
+import styled from 'styled-components'
 import {
   Button,
   Select,
@@ -16,7 +16,10 @@ import {
 } from '@material-ui/core'
 import { AiOutlinePlus } from 'react-icons/ai'
 import { IoHelpCircleOutline } from 'react-icons/io5'
-import { ProjectContext, ProjectState } from '../../contexts/ProjectContext'
+import { ProjectContext } from '../../contexts/ProjectContext'
+import { AppAction, AppContext } from '../../contexts/AppContext'
+import { parse, parse as parseCSV } from 'papaparse'
+import openDataURL from '../../utils/openDataURL'
 
 const Root = styled.div`
   width: 402px;
@@ -54,8 +57,11 @@ const InputControl = styled.div`
 `
 
 export default function Setting (): React.ReactElement {
+  const { dispatchAppState } = useContext(AppContext)!
   const { projectState, setProjectState } = useContext(ProjectContext)!
   const [attributes, setAttributes] = useState<Array<[string, string]>>(Object.entries(projectState.attributes))
+  const svgInput = useRef<HTMLInputElement>(null)
+  const csvInput = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const newAttributes = Object.fromEntries(attributes)
@@ -93,6 +99,38 @@ export default function Setting (): React.ReactElement {
       })
     }
   }
+
+  function handleFileUpload (name: 'svg' | 'csv') {
+    return (event: ChangeEvent<HTMLInputElement>) => {
+      if (!event.target.files || event.target.files.length === 0) return
+      const fr = new FileReader()
+      fr.onerror = (error) => {
+        dispatchAppState({
+          action: AppAction.PUSH_TOAST,
+          payload: {
+            color: 'error',
+            message: 'Unable to read file: ' + error
+          }
+        })
+      }
+      fr.onload = () => {
+        setProjectState((prev) => ({
+          ...prev,
+          [name]: fr.result
+        }))
+        if (name === 'csv' && fr.result) {
+          setProjectState((prev) => ({
+            ...prev,
+            data: parse(fr.result as string, {
+              header: true
+            }).data as { [key: string]: string }[],
+          }))
+        }
+      }
+      fr.readAsText(event.target.files[0])
+    }
+  }
+
   return (
     <Root>
       <Container>
@@ -106,10 +144,10 @@ export default function Setting (): React.ReactElement {
               color="primary"
               variant="outlined"
               size="small"
-              download="template.svg"
-              href={'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(projectState.svg)}
+              onClick={() => openDataURL('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(projectState.svg))}
             >Open</Button>
-            <Button color="primary" variant="contained" size="small">Select</Button>
+            <input type="file" hidden ref={svgInput} accept="image/svg+xml" onChange={handleFileUpload('svg')} />
+            <Button color="primary" variant="contained" size="small" onClick={() => svgInput.current?.click()}>Select</Button>
           </InputControl>
         </InputRow>
         <InputRow>
@@ -121,10 +159,10 @@ export default function Setting (): React.ReactElement {
               color="primary"
               variant="outlined"
               size="small"
-              download="data.csv"
-              href={'data:text/csv;charset=utf-8,' + encodeURIComponent(projectState.csv)}
+              onClick={() => openDataURL('data:text/csv;charset=utf-8,' + encodeURIComponent(projectState.csv))}
             >Open</Button>
-            <Button color="primary" variant="contained" size="small">Select</Button>
+            <input type="file" hidden ref={csvInput} accept="text/csv" onChange={handleFileUpload('csv')} />
+            <Button color="primary" variant="contained" size="small" onClick={() => csvInput.current?.click()}>Select</Button>
           </InputControl>
         </InputRow>
         <InputRow>

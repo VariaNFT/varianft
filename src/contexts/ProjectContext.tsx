@@ -33,14 +33,14 @@ export function ProjectContextProvider (props: {children: React.ReactElement}) {
     data: [],
     attributes: {},
     collection: -1,
-    usingData: 0,
+    usingData: -1,
   })
   function loadProject (projectId: number) {
     db.projects.get(projectId).then(project => {
       if (project) {
         setState({
           ...project,
-          usingData: -1,
+          usingData: 0,
         })
       }
     })
