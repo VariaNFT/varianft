@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useRef, ChangeEvent } from 'react'
+import React, { useEffect, useState, useRef, useContext } from 'react'
 import styled from 'styled-components'
 import $ from 'jquery'
+import { ProjectContext } from '../contexts/ProjectContext'
 
 const Root = styled.div`
   width: calc(100% - 484px);
@@ -22,22 +23,10 @@ const PreviewerContainer = styled.div`
   }
 `
 
-interface Props {
-  svgSource?: string
-  data?: { [key: string]: string }
-}
-
-export default function Preview ({
-  svgSource = `
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-    <path d="M30,1h40l29,29v40l-29,29h-40l-29-29v-40z" stroke="#000" fill="none"/>
-    <path d="M31,3h38l28,28v38l-28,28h-38l-28-28v-38z" fill="#a23"/>
-    <text x="50" y="68" font-size="48" fill="#FFF" text-anchor="middle"><![CDATA[410]]></text>
-  </svg>
-  `,
-  data = {}
-}: Props): React.ReactElement {
+export default function Preview (): React.ReactElement {
   const previewer = useRef(null)
+  const { projectState } = useContext(ProjectContext)!
+
   // TODO: Replace with placeholder image
   const [svgContent, setSvgContent] = useState(`
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
@@ -47,12 +36,17 @@ export default function Preview ({
     </svg>
   `)
   useEffect(() => {
-    if (!svgSource) return // TODO: Replace preview with error message image
+    if (!projectState.svg) return // TODO: Replace preview with error message image
+
+    const data = projectState.data[projectState.usingData]
+    if (!data) {
+      setSvgContent(projectState.svg)
+      return
+    }
 
     // Replace text
-    let copy = svgSource
+    let copy = projectState.svg
     Object.entries(data).forEach(([key, value]) => {
-      console.log(`{${key}}`)
       copy = copy.replaceAll(`{${key}}`, value)
     })
 
@@ -69,20 +63,10 @@ export default function Preview ({
     })
 
     setSvgContent($svg[0].outerHTML)
-  }, [svgSource, data])
-
-  // function setFile (event: ChangeEvent<HTMLInputElement>) {
-  //   if (!event.target.files?.length) return
-  //   const reader = new FileReader()
-  //   reader.onload = (evt) => {
-  //     localStorage.setItem('demo_img', ((evt?.target?.result as string)))
-  //   }
-  //   reader.readAsText(event.target.files[0])
-  // }
+  }, [projectState])
 
   return (
     <Root>
-      {/* <input type="file" onChange={setFile} style={{ position: 'fixed', top: '0', right: '0' }}/> */}
       <PreviewerContainer dangerouslySetInnerHTML={{ __html: svgContent }} ref={previewer} />
     </Root>
   )
