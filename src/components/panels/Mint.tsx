@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext, useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { BiChevronLeft, BiChevronRight } from 'react-icons/bi'
 import {
@@ -13,7 +13,21 @@ import {
   Paper,
   Button,
   Tooltip,
+  IconButton,
 } from '@material-ui/core'
+import { ProjectContext, ProjectState } from '../../contexts/ProjectContext'
+import { IoOpenOutline } from 'react-icons/io5'
+import { AiOutlineLock, AiOutlineUnlock } from 'react-icons/ai'
+import openDataURL from '../../utils/openDataURL'
+
+const COMMON_ATTRIBUTES = [
+  'name',
+  'description',
+  'external_url',
+  'background_color',
+  'animation_url',
+  'youtube_url',
+]
 
 const Root = styled.div`
   width: 402px;
@@ -70,22 +84,86 @@ const ButtonRow = styled.div`
   text-align: right;
 `
 
+function useMetadataGenerator (projectState: ProjectState): [Object, Object] {
+  const table: { [name: string]: string } = {}
+  const metadata: { [key: string ]: string } = {
+    name: '',
+    description: '',
+  }
+  const attributes: {
+    'trait_type': string,
+    value: string
+  }[] = []
+  const data = projectState.data[projectState.usingData]
+  if (!data) return [{}, {}]
+  Object.entries(projectState.attributes)
+    .sort(pair => COMMON_ATTRIBUTES.includes(pair[0]) ? -1 : 1)
+    .forEach(([name, value]) => {
+      const needed = value.match(/\{[^}]*\}/g)?.map(e => e.slice(1, -1)) || []
+      needed.forEach(col => {
+        if (data[col]) value = value.replace(`{${col}}`, data[col])
+      })
+      table[name] = value
+      if (COMMON_ATTRIBUTES.includes(name)) metadata[name] = value
+      else {
+        attributes.push({
+          trait_type: name,
+          value
+        })
+      }
+    })
+  return [table, { ...metadata, attributes }]
+}
+
 export default function Mint (): React.ReactElement {
+  const { projectState, setProjectState } = useContext(ProjectContext)!
+  const [dataIndex, setDataIndex] = useState(projectState.usingData.toString() || '')
+  const [table, metadata] = useMetadataGenerator(projectState)
+  const [address, setAddress] = useState('')
+  const [lockAddress, setLockAddress] = useState(false)
+
+  useEffect(() => {
+    const newIndex = parseInt(dataIndex)
+    const maxIndex = projectState.data.length
+    if (maxIndex === 0) return
+    if (newIndex < 1) {
+      setDataIndex('1')
+      setProjectState(prev => ({ ...prev, usingData: 0 }))
+    } else if (newIndex <= maxIndex) {
+      setProjectState(prev => ({ ...prev, usingData: newIndex - 1 }))
+    } else if (newIndex > maxIndex) {
+      setDataIndex(maxIndex.toString())
+      setProjectState(prev => ({ ...prev, usingData: maxIndex - 1 }))
+    }
+  }, [dataIndex])
+
+  useEffect(() => {
+    if (lockAddress) return
+    const address = projectState.data[projectState.usingData]?.address
+    if (address) setAddress(address)
+  }, [lockAddress, projectState.usingData])
+
   return (
     <Root>
       <Container>
         <Header>
           <h2>Mint</h2>
           <Selector>
-            <SelectorButton>
+            <SelectorButton onClick={() => {
+              setDataIndex(prev => (parseInt(prev) - 1).toString() || (projectState.usingData.toString()) || '1')
+            }}>
               <BiChevronLeft />
             </SelectorButton>
             <TextField
               style={{ width: '4rem', transform: 'translateY(-4px)' }}
               size="small"
-              InputProps={{ endAdornment: <InputAdornment position="end"> / 10</InputAdornment> }}
+              value={dataIndex}
+              onChange={(event) => setDataIndex(event.target.value)}
+              InputProps={{ endAdornment: <InputAdornment position="end">{'/ ' + projectState.data.length}</InputAdornment> }}
             />
-            <SelectorButton>
+            <SelectorButton onClick={() => {
+              setDataIndex(prev => (parseInt(prev) + 1).toString() || ((projectState.usingData + 2).toString()) || projectState.data.length.toString())
+            }}>
               <BiChevronRight />
             </SelectorButton>
           </Selector>
@@ -104,10 +182,18 @@ export default function Mint (): React.ReactElement {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  <TableRow key={'a'}>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Bill</TableCell>
-                  </TableRow>
+                  {projectState.data.length > 0
+                    ? Object.entries(projectState.data[projectState.usingData] || {})
+                      .map(([col, value], index) => (
+                      <TableRow key={index}>
+                        <TableCell>{col}</TableCell>
+                        <TableCell>{value}</TableCell>
+                      </TableRow>
+                      ))
+                    : <TableRow>
+                      <TableCell colSpan={2}>No data</TableCell>
+                    </TableRow>
+                  }
                 </TableBody>
               </Table>
             </TableContainer>
@@ -115,6 +201,14 @@ export default function Mint (): React.ReactElement {
           <Section>
             <Tooltip title="Attributes will be applied to token" placement="right">
               <h3>Metadata</h3>
+            </Tooltip>
+            <Tooltip title="Preview metadata will generate in new tab" placement="right">
+              <a
+                style={{ float: 'right', fontSize: '.9rem', color: '#000', verticalAlign: 'middle' }}
+                onClick={() => openDataURL('data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(metadata)))}
+              >
+                <IoOpenOutline />
+              </a>
             </Tooltip>
             <TableContainer component={Paper}>
               <Table size="small">
@@ -125,10 +219,18 @@ export default function Mint (): React.ReactElement {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  <TableRow key={'a'}>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Bill</TableCell>
-                  </TableRow>
+                  {Object.entries(table)
+                    .map(([col, value], index) => (
+                      <TableRow key={index}>
+                        <TableCell>{col}</TableCell>
+                        <TableCell>{value}</TableCell>
+                      </TableRow>
+                    ))}
+                  {Object.keys(table).length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={2}>No data</TableCell>
+                      </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -141,6 +243,22 @@ export default function Mint (): React.ReactElement {
               style={{ width: '100%', marginBottom: '10px' }}
               label="Address"
               size="small"
+              disabled={lockAddress}
+              value={address}
+              onChange={(event) => {
+                if (!lockAddress) setAddress(event.target.value)
+              }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setLockAddress(prev => !prev)}
+                    >
+                      {lockAddress ? <AiOutlineLock /> : <AiOutlineUnlock />}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
             />
           </Tooltip>
         <ButtonRow>
