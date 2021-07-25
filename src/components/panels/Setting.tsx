@@ -145,7 +145,7 @@ export default function Setting (): React.ReactElement {
               variant="outlined"
               size="small"
               onClick={() => openDataURL('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(projectState.svg))}
-            >Open</Button>
+            >View</Button>
             <input type="file" hidden ref={svgInput} accept="image/svg+xml" onChange={handleFileUpload('svg')} />
             <Button color="primary" variant="contained" size="small" onClick={() => svgInput.current?.click()}>Select</Button>
           </InputControl>
@@ -160,7 +160,7 @@ export default function Setting (): React.ReactElement {
               variant="outlined"
               size="small"
               onClick={() => openDataURL('data:text/csv;charset=utf-8,' + encodeURIComponent(projectState.csv))}
-            >Open</Button>
+            >View</Button>
             <input type="file" hidden ref={csvInput} accept="text/csv" onChange={handleFileUpload('csv')} />
             <Button color="primary" variant="contained" size="small" onClick={() => csvInput.current?.click()}>Select</Button>
           </InputControl>

@@ -14,7 +14,7 @@ const AppContainer = styled.div`
 `
 
 function App (): React.ReactElement {
-  const { appState, dispatchAppState } = useContext(AppContext)!
+  const { appState } = useContext(AppContext)!
   return (
     <AppContainer>
       <Sidebar />

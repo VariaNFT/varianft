@@ -32,8 +32,8 @@ export function ProjectContextProvider (props: {children: React.ReactElement}) {
     csv: '',
     data: [],
     attributes: {},
-    collection: -1,
-    usingData: -1,
+    collection: -1, // -2 for Rarible
+    usingData: 0,
   })
   function loadProject (projectId: number) {
     db.projects.get(projectId).then(project => {
@@ -48,6 +48,7 @@ export function ProjectContextProvider (props: {children: React.ReactElement}) {
 
   useEffect(() => {
     if (!inited) return setInited(true)
+    console.log(state)
     db.projects.update(state, state).then(status => {
       if (status === 0) {
         dispatchAppState({

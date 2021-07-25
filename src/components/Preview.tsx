@@ -78,6 +78,7 @@ export default function Preview (): React.ReactElement {
         ...prev,
         preview: canvas.toDataURL()
       }))
+      canvas.remove()
     }
     img.src = svgDataURL
   }, [projectState.usingData, projectState.data, projectState.svg])
