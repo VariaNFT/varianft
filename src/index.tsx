@@ -6,6 +6,7 @@ import { AppContextProvider } from './contexts/AppContext'
 import { DatabaseContextProvider } from './contexts/DatabaseContext'
 import { createTheme, ThemeProvider } from '@material-ui/core/styles'
 import { ProjectContextProvider } from './contexts/ProjectContext'
+import { CollectionContextProvider } from './contexts/CollectionContext'
 
 const theme = createTheme({
   palette: {
@@ -23,9 +24,11 @@ ReactDOM.render(
     <DatabaseContextProvider>
       <AppContextProvider>
         <ProjectContextProvider>
-          <ThemeProvider theme={theme}>
-            <App />
-          </ThemeProvider>
+          <CollectionContextProvider>
+            <ThemeProvider theme={theme}>
+              <App />
+            </ThemeProvider>
+          </CollectionContextProvider>
         </ProjectContextProvider>
       </AppContextProvider>
     </DatabaseContextProvider>

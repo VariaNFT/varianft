@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useContext, useState, useEffect, useRef, RefObject } from 'react'
+import React, { ChangeEvent, useContext, useState, useEffect, useRef } from 'react'
 import styled from 'styled-components'
 import {
   Button,
@@ -13,13 +13,21 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  InputAdornment,
+  IconButton,
 } from '@material-ui/core'
-import { AiOutlinePlus } from 'react-icons/ai'
+import { AiOutlinePlus, AiOutlineFileAdd } from 'react-icons/ai'
 import { IoHelpCircleOutline } from 'react-icons/io5'
 import { ProjectContext } from '../../contexts/ProjectContext'
 import { AppAction, AppContext } from '../../contexts/AppContext'
-import { parse, parse as parseCSV } from 'papaparse'
+import { parse } from 'papaparse'
 import openDataURL from '../../utils/openDataURL'
+import { CollectionContext } from '../../contexts/CollectionContext'
+import { DatabaseContext } from '../../contexts/DatabaseContext'
 
 const Root = styled.div`
   width: 402px;
@@ -55,13 +63,42 @@ const InputControl = styled.div`
     margin-left: 10px;
   }
 `
+const DialogTextField = styled(TextField)`
+  &.MuiTextField-root {
+    margin: 8px 0;
+  }
+`
+
+interface CollectionData {
+  name: string
+  symbol: string
+  description: string
+  'external_link': string
+  'seller_fee_basis_points': string
+  'fee_recipient': string
+}
 
 export default function Setting (): React.ReactElement {
   const { dispatchAppState } = useContext(AppContext)!
+  const db = useContext(DatabaseContext)!
   const { projectState, setProjectState } = useContext(ProjectContext)!
+  const { collections } = useContext(CollectionContext)!
+
   const [attributes, setAttributes] = useState<Array<[string, string]>>(Object.entries(projectState.attributes))
+  const [openCollectionForm, setOpenCollectionForm] = useState(false)
+  const [collectionForm, setCollectionForm] = useState<CollectionData>({
+    name: '',
+    symbol: '',
+    description: '',
+    external_link: '',
+    seller_fee_basis_points: '',
+    fee_recipient: '',
+  })
+  const [collectionImageFileName, setCollectionImageFileName] = useState('')
+
   const svgInput = useRef<HTMLInputElement>(null)
   const csvInput = useRef<HTMLInputElement>(null)
+  const collectionImage = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const newAttributes = Object.fromEntries(attributes)
@@ -131,6 +168,19 @@ export default function Setting (): React.ReactElement {
     }
   }
 
+  function deployCollection () {
+    db.collections.add({
+      name: collectionForm.name,
+      address: '0x0000000000000000000000000000000000000000'
+    }).then(id => {
+      setProjectState(prev => ({
+        ...prev,
+        collection: id
+      }))
+      setOpenCollectionForm(false)
+    })
+  }
+
   return (
     <Root>
       <Container>
@@ -171,17 +221,27 @@ export default function Setting (): React.ReactElement {
           </InputLabel>
           <InputControl>
             <Select
-              style={{ width: '75%' }}
+              style={{ width: '75%', textAlign: 'left' }}
+              value={projectState.collection}
+              onChange={(event) => setProjectState(prev => ({
+                ...prev,
+                collection: event.target.value as number || -1
+              }))}
             >
-              <MenuItem> {/* Only show for Ropsten and Rinkeby */}
-                <Tooltip title="Rarible Protocol provides a contract everyone can mint zir token. By using Rarible, you won't need to deploy your own contract, but the token name and symbol will use Rarible" placement="right">
+              <MenuItem value={-2}> {/* Only show for Mainnet, Ropsten and Rinkeby */}
+                <Tooltip title="Rarible Protocol provides a contract everyone can mint zir tokens. By using Rarible, you won't need to deploy your own contract, but the token name and symbol will use Rarible" placement="right">
                   <span>
                     Rarible
                     <IoHelpCircleOutline style={{ marginLeft: '0.5rem', transform: 'translateY(3px)' }} />
                   </span>
                 </Tooltip>
               </MenuItem>
-              <MenuItem onClick={() => alert()}><em>Create New Collection</em></MenuItem>
+              {collections.map(collection => (
+                <MenuItem value={collection.id!} key={collection.id!}>
+                  {collection.name}
+                </MenuItem>
+              ))}
+              <MenuItem onClick={() => setOpenCollectionForm(true)}><em>Create New Collection</em></MenuItem>
             </Select>
           </InputControl>
         </InputRow>
@@ -275,6 +335,89 @@ export default function Setting (): React.ReactElement {
           </InputControl>
         </InputRow>
       </Container>
+      <Dialog open={openCollectionForm} onClose={() => setOpenCollectionForm(false)} scroll="paper" fullWidth={true}>
+        <DialogTitle>
+          Create Collection
+          <Tooltip title="Check out Opensea's document for details" placement="right">
+            <a
+              style={{ float: 'right', color: '#000', verticalAlign: 'middle' }}
+              href="https://docs.opensea.io/docs/contract-level-metadata"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <IoHelpCircleOutline />
+            </a>
+          </Tooltip>
+        </DialogTitle>
+        <DialogContent>
+          <DialogTextField
+            label="Name"
+            fullWidth
+            value={collectionForm.name}
+            onChange={(event) => setCollectionForm(prev => ({ ...prev, name: event.target.value }))}
+          />
+          <DialogTextField
+            label="Symbol"
+            fullWidth
+            value={collectionForm.symbol}
+            onChange={(event) => setCollectionForm(prev => ({ ...prev, symbol: event.target.value }))}
+          />
+          <DialogTextField
+            label="Description"
+            fullWidth
+            multiline
+            maxRows={4}
+            value={collectionForm.description}
+            onChange={(event) => setCollectionForm(prev => ({ ...prev, description: event.target.value }))}
+          />
+          <input type="file" accept="image/*" ref={collectionImage} hidden onChange={(event) => {
+            setCollectionImageFileName(event.target.files?.[0].name || '')
+          }}/>
+          <DialogTextField
+            label="Image"
+            fullWidth
+            maxRows={4}
+            helperText={'Select a file for this collection'}
+            value={collectionImageFileName}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => collectionImage.current?.click()}
+                  >
+                    <AiOutlineFileAdd />
+                  </IconButton>
+                </InputAdornment>)
+            }}
+          />
+          <DialogTextField
+            label="External Link"
+            fullWidth
+            value={collectionForm.external_link}
+            onChange={(event) => setCollectionForm(prev => ({ ...prev, external_link: event.target.value }))}
+          />
+          <DialogTextField
+            label="Seller Fee (‱)"
+            fullWidth
+            value={collectionForm.seller_fee_basis_points}
+            onChange={(event) => setCollectionForm(prev => ({ ...prev, seller_fee_basis_points: event.target.value }))}
+          />
+          <DialogTextField
+            label="Fee Recipient"
+            fullWidth
+            value={collectionForm.fee_recipient}
+            onChange={(event) => setCollectionForm(prev => ({ ...prev, fee_recipient: event.target.value }))}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button color="default" onClick={() => setOpenCollectionForm(false)}>
+            Cancel
+          </Button>
+          <Button color="primary" onClick={deployCollection}>
+            Create
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Root>
   )
 }
