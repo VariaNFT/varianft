@@ -9,13 +9,14 @@ const Root = styled.div`
   background: rgb(249, 247, 244);
   display: inline-block;
   position: relative;
+  vertical-align: top;
 `
 const PreviewerContainer = styled.div`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translateY(-50%) translateX(-50%);
   text-align: center;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
 
   svg {
     max-width: 70%;
