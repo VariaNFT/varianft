@@ -8,6 +8,8 @@ import Setting from './components/panels/Setting'
 import Sidebar from './components/Sidebar'
 import { AppContext } from './contexts/AppContext'
 import Page from './types/Page'
+// @ts-ignore
+import MessengerCustomerChat from 'react-messenger-customer-chat'
 
 const AppContainer = styled.div`
   height: 100%;
@@ -23,6 +25,10 @@ function App (): React.ReactElement {
       { appState.page === Page.SETTING && <Setting />}
       <Preview />
       <Toast />
+      <MessengerCustomerChat
+        pageId="106185488388491"
+        appId="360375655656999"
+      />
     </AppContainer>
   )
 }
