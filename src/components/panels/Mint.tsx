@@ -20,7 +20,7 @@ import { IoOpenOutline } from 'react-icons/io5'
 import { AiOutlineLock, AiOutlineUnlock } from 'react-icons/ai'
 import openDataURL from '../../utils/openDataURL'
 import { AppContext } from '../../contexts/AppContext'
-import axios from 'axios'
+import { uploadViaProxy } from '../../utils/uploadToNFTStorage'
 
 const COMMON_ATTRIBUTES = [
   'name',
@@ -115,30 +115,6 @@ function useMetadataGenerator (projectState: ProjectState): [Object, Object] {
       }
     })
   return [table, { ...metadata, attributes }]
-}
-
-function uploadViaProxy (meta: Object, canvas: HTMLCanvasElement): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const data = new FormData()
-    canvas.toBlob(blob => {
-      data.append('img', blob!, 'image.png')
-      data.append('meta', JSON.stringify(meta))
-      axios.post('https://c6muwv.deta.dev/', data, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        }
-      }).then(({ data }) => {
-        resolve(data.tokenURI)
-      }).catch(err => {
-        if (err.response && err.response.status === 413) reject(new Error('File too large'))
-        else if (err.response && err.response.data) reject(new Error(err.response.data))
-        else {
-          reject(new Error('Unknown error'))
-          console.error(err)
-        }
-      })
-    })
-  })
 }
 
 export default function Mint (): React.ReactElement {
@@ -262,10 +238,6 @@ export default function Mint (): React.ReactElement {
                 </TableBody>
               </Table>
             </TableContainer>
-          </Section>
-          <Section>
-            <h3>IPFS:</h3>
-            <p>{ipfs}</p>
           </Section>
         </Body>
       </Container>

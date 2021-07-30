@@ -28,6 +28,11 @@ import { parse } from 'papaparse'
 import openDataURL from '../../utils/openDataURL'
 import { CollectionContext } from '../../contexts/CollectionContext'
 import { DatabaseContext } from '../../contexts/DatabaseContext'
+import { useEthers, ChainId } from '@usedapp/core'
+import ERC721RaribleUser from '../../contracts/ERC721RaribleUser.json'
+import { ContractFactory } from 'ethers'
+import { Interface } from '@ethersproject/abi'
+import { uploadViaProxy } from '../../utils/uploadToNFTStorage'
 
 const Root = styled.div`
   width: 402px;
@@ -95,10 +100,14 @@ export default function Setting (): React.ReactElement {
     fee_recipient: '',
   })
   const [collectionImageFileName, setCollectionImageFileName] = useState('')
+  // -1 for not creating, >= 0 for creating
+  const [collectionCreating, setCollectionCreating] = useState(-1)
 
   const svgInput = useRef<HTMLInputElement>(null)
   const csvInput = useRef<HTMLInputElement>(null)
   const collectionImage = useRef<HTMLInputElement>(null)
+
+  const { chainId, library, account } = useEthers()
 
   useEffect(() => {
     const newAttributes = Object.fromEntries(attributes)
@@ -168,17 +177,69 @@ export default function Setting (): React.ReactElement {
     }
   }
 
-  function deployCollection () {
-    db.collections.add({
+  async function deployCollection () {
+    if (!library) {
+      return dispatchAppState({
+        action: AppAction.PUSH_TOAST,
+        payload: {
+          color: 'error',
+          message: 'Cannot get wallet'
+        }
+      })
+    }
+
+    if (!collectionImage.current?.files?.[0]) {
+      return dispatchAppState({
+        action: AppAction.PUSH_TOAST,
+        payload: {
+          color: 'error',
+          message: 'Image not set'
+        }
+      })
+    }
+
+    setCollectionCreating(0)
+
+    const raribleUser = new ContractFactory(new Interface(ERC721RaribleUser.abi), ERC721RaribleUser.bytecode, library.getSigner())
+    const [uri, contract] = await Promise.all([
+      uploadViaProxy(collectionForm, collectionImage.current?.files[0]).then(any => {
+        setCollectionCreating(prev => prev + 1)
+        return any
+      }),
+      raribleUser.deploy().then(any => {
+        setCollectionCreating(prev => prev + 1)
+        return any
+      }),
+    ])
+
+    await contract.__ERC721RaribleUser_init(
+      collectionForm.name,
+      uri,
+      '',
+      '',
+      [],
+      { from: account }
+    ).then(() => setCollectionCreating(prev => prev + 1))
+
+    await db.collections.add({
       name: collectionForm.name,
-      address: '0x0000000000000000000000000000000000000000'
+      address: contract.address
     }).then(id => {
       setProjectState(prev => ({
         ...prev,
-        collection: id
+        collection: id,
       }))
       setOpenCollectionForm(false)
     })
+
+    dispatchAppState({
+      action: AppAction.PUSH_TOAST,
+      payload: {
+        color: 'success',
+        message: 'Deployed new ERC721 contract!',
+      }
+    })
+    setCollectionCreating(-1)
   }
 
   return (
@@ -228,14 +289,16 @@ export default function Setting (): React.ReactElement {
                 collection: event.target.value as number || -1
               }))}
             >
-              <MenuItem value={-2}> {/* Only show for Mainnet, Ropsten and Rinkeby */}
-                <Tooltip title="Rarible Protocol provides a contract everyone can mint zir tokens. By using Rarible, you won't need to deploy your own contract, but the token name and symbol will use Rarible" placement="right">
-                  <span>
-                    Rarible
-                    <IoHelpCircleOutline style={{ marginLeft: '0.5rem', transform: 'translateY(3px)' }} />
-                  </span>
-                </Tooltip>
-              </MenuItem>
+              {chainId && [ChainId.Mainnet, ChainId.Ropsten, ChainId.Rinkeby].includes(chainId) && (
+                <MenuItem value={-2}> {/* Only show for Mainnet, Ropsten and Rinkeby */}
+                  <Tooltip title="Rarible Protocol provides a contract everyone can mint zir tokens. By using Rarible, you won't need to deploy your own contract, but the token name and symbol will use Rarible" placement="right">
+                    <span>
+                      Rarible
+                      <IoHelpCircleOutline style={{ marginLeft: '0.5rem', transform: 'translateY(3px)' }} />
+                    </span>
+                  </Tooltip>
+                </MenuItem>
+              )}
               {collections.map(collection => (
                 <MenuItem value={collection.id!} key={collection.id!}>
                   {collection.name}
@@ -335,7 +398,9 @@ export default function Setting (): React.ReactElement {
           </InputControl>
         </InputRow>
       </Container>
-      <Dialog open={openCollectionForm} onClose={() => setOpenCollectionForm(false)} scroll="paper" fullWidth={true}>
+      <Dialog open={openCollectionForm} onClose={() => {
+        if (collectionCreating === -1) setOpenCollectionForm(false)
+      }} scroll="paper" fullWidth={true}>
         <DialogTitle>
           Create Collection
           <Tooltip title="Check out Opensea's document for details" placement="right">
@@ -410,11 +475,11 @@ export default function Setting (): React.ReactElement {
           />
         </DialogContent>
         <DialogActions>
-          <Button color="default" onClick={() => setOpenCollectionForm(false)}>
+          <Button color="default" onClick={() => setOpenCollectionForm(false)} disabled={collectionCreating >= 0}>
             Cancel
           </Button>
-          <Button color="primary" onClick={deployCollection}>
-            Create
+          <Button color="primary" onClick={deployCollection} disabled={collectionCreating >= 0}>
+            {collectionCreating >= 0 ? `Creating... (${collectionCreating}/4)` : 'Create'}
           </Button>
         </DialogActions>
       </Dialog>

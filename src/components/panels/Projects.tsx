@@ -15,6 +15,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { AppAction, AppContext } from '../../contexts/AppContext'
 import Page from '../../types/Page'
 import { ProjectContext } from '../../contexts/ProjectContext'
+import { useEthers } from '@usedapp/core'
 
 const Root = styled.div`
   width: 402px;
@@ -87,6 +88,8 @@ export default function Projects (): React.ReactElement {
   const [openForm, setOpenForm] = useState(false)
   const [newProjectName, setNewProjectName] = useState('')
 
+  const { activateBrowserWallet } = useEthers()
+
   function createProject () {
     db.projects.add({
       name: newProjectName,
@@ -139,6 +142,7 @@ export default function Projects (): React.ReactElement {
         <h2 style={{ marginBottom: '10px' }}>Projects</h2>
         {projects?.map(project => (
           <Card component={ProjectCard} key={project.id} onClick={() => {
+            activateBrowserWallet()
             dispatchAppState({
               action: AppAction.OPEN_PROJECT,
               payload: { projectId: project.id }
