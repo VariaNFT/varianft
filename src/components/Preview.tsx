@@ -43,34 +43,34 @@ export default function Preview (): React.ReactElement {
     if (!projectState.svg) return // TODO: Replace preview with error message image
 
     const data = projectState.data[projectState.usingData]
+    let svgElement
     if (!data) {
       setSvgContent(projectState.svg)
-      return
-    }
+    } else {
+      // Replace text
+      let copy = projectState.svg
+      Object.entries(data).forEach(([key, value]) => {
+        copy = copy.replaceAll(`{${key}}`, value)
+      })
 
-    // Replace text
-    let copy = projectState.svg
-    Object.entries(data).forEach(([key, value]) => {
-      copy = copy.replaceAll(`{${key}}`, value)
-    })
-
-    // Replace Image
-    const $svg = $($.parseXML(copy))
-    if (!$svg) return // TODO: Replace preview with error message image
-
-    $svg.find('image').each((_, element) => {
-      if (element.id && data[element.id]) {
-        const $element = $(element)
-        $element.attr('xlink:href', '')
-        $element.attr('href', data[element.id])
+      // Replace Image
+      const $svg = $($.parseXML(copy))
+      if ($svg) {
+        $svg.find('image').each((_, element) => {
+          if (element.id && data[element.id]) {
+            const $element = $(element)
+            $element.attr('xlink:href', '')
+            $element.attr('href', data[element.id])
+          }
+        })
+        svgElement = $svg.find('svg')[0]
+        setSvgContent(svgElement.outerHTML)
       }
-    })
-    const svgElement = $svg.find('svg')[0]
-    setSvgContent(svgElement.outerHTML)
+    }
 
     // Update preview image
     if (!previewer.current) return
-    const svgDataURL = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgElement.outerHTML)
+    const svgDataURL = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgElement?.outerHTML || svgContent)
     const img = new Image()
     img.onload = () => {
       const context = canvas.current!.getContext('2d')

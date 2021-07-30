@@ -107,7 +107,7 @@ function useMetadataGenerator (projectState: ProjectState): [Object, Object] {
       })
       table[name] = value
       if (COMMON_ATTRIBUTES.includes(name)) metadata[name] = value
-      else {
+      else if (name.length) {
         attributes.push({
           trait_type: name,
           value
@@ -146,6 +146,9 @@ export default function Mint (): React.ReactElement {
     const address = projectState.data[projectState.usingData]?.address
     if (address) setAddress(address)
   }, [lockAddress, projectState.usingData])
+
+  async function mintToken () {
+  }
 
   return (
     <Root>
@@ -266,12 +269,18 @@ export default function Mint (): React.ReactElement {
             />
           </Tooltip>
         <ButtonRow>
-          <Button variant="outlined" color="secondary" size="small" style={{ float: 'left' }}>
+          <Button variant="outlined" color="secondary" size="small" style={{ float: 'left' }} onClick={() => {
+            const data = projectState.data
+            setProjectState(prev => ({
+              ...prev,
+              data: data.filter((_, index) => index !== projectState.usingData)
+            }))
+          }}>
             Remove
           </Button>
-          <Button variant="outlined" color="primary" size="small" style={{ marginRight: '10px' }}>
+          {/* <Button variant="outlined" color="primary" size="small" style={{ marginRight: '10px' }}>
             Mint All
-          </Button>
+          </Button> */}
           <Button variant="contained" color="primary" size="small" onClick={() => {
             uploadViaProxy(metadata, appState.previewCanvas!).then(setIpfs)
           }}>

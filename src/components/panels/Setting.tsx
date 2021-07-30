@@ -119,16 +119,22 @@ export default function Setting (): React.ReactElement {
 
   function handleAttributeKeyChange (index: number) {
     return (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const copy = [...attributes]
+      let copy = [...attributes]
       copy[index][0] = event.target.value
+      if (copy[index][0].length === 0 && copy[index][1].length === 0) {
+        copy = copy.filter((_, idx) => idx !== index)
+      }
       setAttributes(copy)
     }
   }
 
   function handleAttributeValueChange (index: number) {
     return (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const copy = [...attributes]
+      let copy = [...attributes]
       copy[index][1] = event.target.value
+      if (copy[index][0].length === 0 && copy[index][1].length === 0) {
+        copy = copy.filter((_, idx) => idx !== index)
+      }
       setAttributes(copy)
     }
   }
