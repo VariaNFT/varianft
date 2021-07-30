@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useContext } from 'react'
 import styled from 'styled-components'
 import $ from 'jquery'
 import { ProjectContext } from '../contexts/ProjectContext'
+import { AppAction, AppContext } from '../contexts/AppContext'
 
 const Root = styled.div`
   width: calc(100% - 484px);
@@ -26,7 +27,9 @@ const PreviewerContainer = styled.div`
 
 export default function Preview (): React.ReactElement {
   const previewer = useRef<HTMLDivElement>(null)
+  const canvas = useRef<HTMLCanvasElement>(null)
   const { projectState, setProjectState } = useContext(ProjectContext)!
+  const { dispatchAppState } = useContext(AppContext)!
 
   // TODO: Replace with placeholder image
   const [svgContent, setSvgContent] = useState(`
@@ -70,23 +73,29 @@ export default function Preview (): React.ReactElement {
     const svgDataURL = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgElement.outerHTML)
     const img = new Image()
     img.onload = () => {
-      const canvas = document.createElement('canvas')
-      const context = canvas.getContext('2d')
-      canvas.width = img.width
-      canvas.height = img.height
+      const context = canvas.current!.getContext('2d')
+      canvas.current!.width = img.width
+      canvas.current!.height = img.height
       context?.drawImage(img, 0, 0)
       setProjectState(prev => ({
         ...prev,
-        preview: canvas.toDataURL()
+        preview: canvas.current!.toDataURL()
       }))
-      canvas.remove()
     }
     img.src = svgDataURL
   }, [projectState.usingData, projectState.data, projectState.svg])
 
+  useEffect(() => {
+    dispatchAppState({
+      action: AppAction.SET_CANVAS,
+      payload: { canvas: canvas.current },
+    })
+  }, [canvas])
+
   return (
     <Root>
       <PreviewerContainer dangerouslySetInnerHTML={{ __html: svgContent }} ref={previewer} />
+      <canvas hidden ref={canvas} />
     </Root>
   )
 }

@@ -6,6 +6,7 @@ interface AppState {
   usingProject: number | undefined
   page: Page
   toasts: { color: AlertColor, message: string }[]
+  previewCanvas: HTMLCanvasElement | undefined
 }
 
 export const AppContext = createContext<{
@@ -21,6 +22,7 @@ export enum AppAction {
   OPEN_PROJECT,
   PUSH_TOAST,
   DROP_TOAST,
+  SET_CANVAS,
 }
 
 function reducer (state: AppState, event: {
@@ -50,6 +52,8 @@ function reducer (state: AppState, event: {
           ...state.toasts.filter((_, index) => index !== event.payload.index)
         ]
       }
+    case AppAction.SET_CANVAS:
+      return { ...state, previewCanvas: event.payload.canvas }
     default:
       console.error('Unknown action called ' + event.action)
       return state
@@ -61,6 +65,7 @@ export function AppContextProvider (props: {children: React.ReactElement}) {
     usingProject: undefined,
     page: Page.PROJECT,
     toasts: [],
+    previewCanvas: undefined,
   })
   return (
     <AppContext.Provider value={{ appState: state, dispatchAppState: dispatch }}>

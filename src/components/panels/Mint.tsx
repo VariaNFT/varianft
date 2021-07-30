@@ -19,6 +19,8 @@ import { ProjectContext, ProjectState } from '../../contexts/ProjectContext'
 import { IoOpenOutline } from 'react-icons/io5'
 import { AiOutlineLock, AiOutlineUnlock } from 'react-icons/ai'
 import openDataURL from '../../utils/openDataURL'
+import { AppContext } from '../../contexts/AppContext'
+import axios from 'axios'
 
 const COMMON_ATTRIBUTES = [
   'name',
@@ -115,12 +117,38 @@ function useMetadataGenerator (projectState: ProjectState): [Object, Object] {
   return [table, { ...metadata, attributes }]
 }
 
+function uploadViaProxy (meta: Object, canvas: HTMLCanvasElement): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const data = new FormData()
+    canvas.toBlob(blob => {
+      data.append('img', blob!, 'image.png')
+      data.append('meta', JSON.stringify(meta))
+      axios.post('https://c6muwv.deta.dev/', data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }
+      }).then(({ data }) => {
+        resolve(data.tokenURI)
+      }).catch(err => {
+        if (err.response && err.response.status === 413) reject(new Error('File too large'))
+        else if (err.response && err.response.data) reject(new Error(err.response.data))
+        else {
+          reject(new Error('Unknown error'))
+          console.error(err)
+        }
+      })
+    })
+  })
+}
+
 export default function Mint (): React.ReactElement {
   const { projectState, setProjectState } = useContext(ProjectContext)!
-  const [dataIndex, setDataIndex] = useState(projectState.usingData.toString() || '')
+  const { appState } = useContext(AppContext)!
+  const [dataIndex, setDataIndex] = useState((projectState.usingData + 1).toString() || '')
   const [table, metadata] = useMetadataGenerator(projectState)
   const [address, setAddress] = useState('')
   const [lockAddress, setLockAddress] = useState(false)
+  const [ipfs, setIpfs] = useState('')
 
   useEffect(() => {
     const newIndex = parseInt(dataIndex)
@@ -235,6 +263,10 @@ export default function Mint (): React.ReactElement {
               </Table>
             </TableContainer>
           </Section>
+          <Section>
+            <h3>IPFS:</h3>
+            <p>{ipfs}</p>
+          </Section>
         </Body>
       </Container>
       <Controls>
@@ -268,7 +300,9 @@ export default function Mint (): React.ReactElement {
           <Button variant="outlined" color="primary" size="small" style={{ marginRight: '10px' }}>
             Mint All
           </Button>
-          <Button variant="contained" color="primary" size="small">
+          <Button variant="contained" color="primary" size="small" onClick={() => {
+            uploadViaProxy(metadata, appState.previewCanvas!).then(setIpfs)
+          }}>
             Mint
           </Button>
         </ButtonRow>
