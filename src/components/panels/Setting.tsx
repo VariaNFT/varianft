@@ -219,14 +219,15 @@ export default function Setting (): React.ReactElement {
       }),
     ])
 
-    await contract.__ERC721RaribleUser_init(
+    const tx = await contract.__ERC721RaribleUser_init(
       collectionForm.name,
       uri,
       '',
       '',
       [],
       { from: account }
-    ).then(() => setCollectionCreating(prev => prev + 1))
+    )
+    await tx.wait().then(() => setCollectionCreating(prev => prev + 1))
 
     await db.collections.add({
       name: collectionForm.name,
@@ -248,6 +249,16 @@ export default function Setting (): React.ReactElement {
       }
     })
     setCollectionCreating(-1)
+    setCollectionForm({
+      name: '',
+      symbol: '',
+      description: '',
+      external_link: '',
+      seller_fee_basis_points: '',
+      fee_recipient: '',
+    })
+    setCollectionImageFileName('')
+    collectionImage.current.value = ''
   }
 
   return (
@@ -291,7 +302,7 @@ export default function Setting (): React.ReactElement {
           <InputControl>
             <Select
               style={{ width: '75%', textAlign: 'left' }}
-              value={projectState.collection}
+              value={projectState.collection === -1 ? '' : projectState.collection}
               onChange={(event) => setProjectState(prev => ({
                 ...prev,
                 collection: event.target.value as number || -1
