@@ -43,7 +43,7 @@ export default function Preview (): React.ReactElement {
     if (!projectState.svg) return // TODO: Replace preview with error message image
 
     const data = projectState.data[projectState.usingData]
-    let svgElement
+    let $svgElement
     if (!data) {
       setSvgContent(projectState.svg)
     } else {
@@ -63,14 +63,23 @@ export default function Preview (): React.ReactElement {
             $element.attr('href', data[element.id])
           }
         })
-        svgElement = $svg.find('svg')[0]
-        setSvgContent(svgElement.outerHTML)
+        $svgElement = $svg.find('svg')
+
+        // Firefox Fix for SVGs without height and width, use last 2 value of view box
+        if ((!$svgElement.attr('width') || !$svgElement.attr('height')) && $svgElement.attr('viewBox')) {
+          const { width, height } = $svgElement.attr('viewBox')?.match(/\d+ \d+ (?<width>\d+) (?<height>\d+)/)?.groups || { width: 0, height: 0 }
+          $svgElement.attr('width', width)
+          $svgElement.attr('height', height)
+        }
+        setSvgContent($svgElement[0].outerHTML)
+      } else {
+        // Svg error
       }
     }
 
     // Update preview image
     if (!previewer.current) return
-    const svgDataURL = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgElement?.outerHTML || svgContent)
+    const svgDataURL = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent($svgElement?.[0].outerHTML.trim() || svgContent.trim())
     const img = new Image()
     img.onload = () => {
       const context = canvas.current!.getContext('2d')
