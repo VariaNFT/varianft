@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { AiOutlinePlus } from 'react-icons/ai'
 import {
@@ -88,7 +88,18 @@ export default function Projects (): React.ReactElement {
   const [openForm, setOpenForm] = useState(false)
   const [newProjectName, setNewProjectName] = useState('')
 
-  const { activateBrowserWallet } = useEthers()
+  const { activateBrowserWallet, error } = useEthers()
+
+  useEffect(() => {
+    if (!error) return
+    dispatchAppState({
+      action: AppAction.PUSH_TOAST,
+      payload: {
+        color: 'error',
+        message: 'Cannot connect to wallet, be sure you are using Mainnet, Ropsten, or Rinkeby, others are not supported yet'
+      }
+    })
+  }, [error])
 
   function createProject () {
     db.projects.add({

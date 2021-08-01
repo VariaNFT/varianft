@@ -107,7 +107,7 @@ export default function Setting (): React.ReactElement {
   const csvInput = useRef<HTMLInputElement>(null)
   const collectionImage = useRef<HTMLInputElement>(null)
 
-  const { chainId, library, account } = useEthers()
+  const { chainId, library, account, activateBrowserWallet } = useEthers()
 
   useEffect(() => {
     const newAttributes = Object.fromEntries(attributes)
@@ -184,7 +184,8 @@ export default function Setting (): React.ReactElement {
   }
 
   async function deployCollection () {
-    if (!library) {
+    if (!library || !account) {
+      activateBrowserWallet()
       return dispatchAppState({
         action: AppAction.PUSH_TOAST,
         payload: {
@@ -229,7 +230,8 @@ export default function Setting (): React.ReactElement {
 
     await db.collections.add({
       name: collectionForm.name,
-      address: contract.address
+      address: contract.address,
+      chainId: chainId!,
     }).then(id => {
       setProjectState(prev => ({
         ...prev,

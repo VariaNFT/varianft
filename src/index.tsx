@@ -26,9 +26,8 @@ const dAppConfigs: Config = {
     [ChainId.Mainnet]: 'https://mainnet.infura.io/v3/e94f302a35ad4b62937b9cc6fe6726ba',
     [ChainId.Ropsten]: 'https://ropsten.infura.io/v3/e94f302a35ad4b62937b9cc6fe6726ba',
     [ChainId.Rinkeby]: 'https://rinkeby.infura.io/v3/e94f302a35ad4b62937b9cc6fe6726ba',
-    [ChainId.BSC]: 'https://bsc-dataseed.binance.org/',
-    97: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
   },
+  supportedChains: [ChainId.Mainnet, ChainId.Ropsten, ChainId.Rinkeby],
 }
 
 ReactDOM.render(

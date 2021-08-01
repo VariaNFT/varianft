@@ -11,7 +11,7 @@ export class Database extends Dexie {
     super('VariaNFT')
     this.version(1).stores({
       projects: '++id,name,preview,svg,csv,data,attributes,collection',
-      collections: '++id,name,address',
+      collections: '++id,name,address,chainId',
     })
 
     this.projects = this.table('projects')
@@ -54,6 +54,7 @@ export interface CollectionModel {
   id?: number
   name: string
   address: string
+  chainId: number
 }
 
 export function DatabaseContextProvider (props: {children: React.ReactElement}) {
