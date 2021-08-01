@@ -31,14 +31,11 @@ import { BsCheckCircle } from 'react-icons/bs'
 import openDataURL from '../../utils/openDataURL'
 import { AppAction, AppContext } from '../../contexts/AppContext'
 import { uploadViaProxy } from '../../utils/uploadToNFTStorage'
-import { useContractFunction, useEthers } from '@usedapp/core'
+import { useContractFunction, useEthers, ChainId, useContractCalls } from '@usedapp/core'
 import ERC721RaribleUser from '../../contracts/ERC721RaribleUser.json'
-import { Interface } from '@ethersproject/abi'
 import { CollectionContext } from '../../contexts/CollectionContext'
 import { getRaribleTokenId } from '../../utils/getRaribleTokenId'
 import { Contract } from 'ethers'
-
-const RaribleContract = new Interface(ERC721RaribleUser.abi)
 
 const COMMON_ATTRIBUTES = [
   'name',
@@ -48,6 +45,17 @@ const COMMON_ATTRIBUTES = [
   'animation_url',
   'youtube_url',
 ]
+
+const ChainNameMap = {
+  [ChainId.Mainnet]: 'Mainnet',
+  [ChainId.Rinkeby]: 'Rinkeby',
+  [ChainId.Ropsten]: 'Ropsten',
+}
+
+const PublicContractMap = {
+  [ChainId.Rinkeby]: '0x6ede7f3c26975aad32a475e1021d8f6f39c89d82',
+  [ChainId.Ropsten]: '0xB0EA149212Eb707a1E5FC1D2d3fD318a8d94cf05',
+}
 
 const Root = styled.div`
   width: 402px;
@@ -141,13 +149,19 @@ function useMetadataGenerator (projectState: ProjectState): [Object, Object] {
 }
 
 export default function Mint (): React.ReactElement {
+  const { chainId, account, activateBrowserWallet } = useEthers()
+
   const { projectState, setProjectState } = useContext(ProjectContext)!
   const { appState, dispatchAppState } = useContext(AppContext)!
   const { collections } = useContext(CollectionContext)!
-  const collection = collections.find(e => e.id === projectState.collection)
+  const collection = projectState.collection !== -2
+    ? collections.find(e => e.id === projectState.collection)
+    : {
+        chainId,
+        address: PublicContractMap[chainId as 4 | 3]
+      }
 
   const [table, metadata] = useMetadataGenerator(projectState)
-  const { chainId, account, activateBrowserWallet } = useEthers()
 
   const [dataIndex, setDataIndex] = useState((projectState.usingData + 1).toString() || '')
   const [address, setAddress] = useState('')
@@ -156,7 +170,8 @@ export default function Mint (): React.ReactElement {
   const [ipfs, setIpfs] = useState('')
   const [tokenId, setTokenId] = useState('')
 
-  const ERC721RaribleContract = new Contract(collection?.address! || '0x0000000000000000000000000000000000000000', ERC721RaribleUser.abi)
+  const collectionAddress = projectState.collection === -2 ? PublicContractMap[collection?.chainId as 4 | 3] : collection?.address
+  const ERC721RaribleContract = new Contract(collectionAddress || '0x0000000000000000000000000000000000000000', ERC721RaribleUser.abi)
   const { state, send } = useContractFunction(ERC721RaribleContract, 'mintAndTransfer')
 
   useEffect(() => {
@@ -220,9 +235,34 @@ export default function Mint (): React.ReactElement {
   }, [state])
 
   async function mintToken () {
-    if (!collection) return // error: collection not exists
-    if (!chainId || chainId !== collection.chainId) return // wrong network
-    if (!account) return // cannot get wallet
+    if (!collection) {
+      return dispatchAppState({
+        action: AppAction.PUSH_TOAST,
+        payload: {
+          color: 'error',
+          message: 'Collection not set or not found (maybe you cleared the history)',
+        }
+      })
+    }
+    if (!chainId || chainId !== collection.chainId) {
+      return dispatchAppState({
+        action: AppAction.PUSH_TOAST,
+        payload: {
+          color: 'error',
+          message: 'You are using wrong chain, switch to ' + ChainNameMap[collection.chainId as 1 | 4 | 3],
+        }
+      })
+    }
+    if (!account) {
+      activateBrowserWallet()
+      return dispatchAppState({
+        action: AppAction.PUSH_TOAST,
+        payload: {
+          color: 'error',
+          message: 'Cannot get wallet'
+        }
+      })
+    }
 
     setMinting(true)
     const getTokenId = getRaribleTokenId(chainId, collection.address, account)

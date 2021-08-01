@@ -34,6 +34,12 @@ import { ContractFactory } from 'ethers'
 import { Interface } from '@ethersproject/abi'
 import { uploadViaProxy } from '../../utils/uploadToNFTStorage'
 
+const ChainNameMap = {
+  [ChainId.Mainnet]: 'Mainnet',
+  [ChainId.Rinkeby]: 'Rinkeby',
+  [ChainId.Ropsten]: 'Ropsten',
+}
+
 const Root = styled.div`
   width: 402px;
   height: 100%;
@@ -221,9 +227,9 @@ export default function Setting (): React.ReactElement {
 
     const tx = await contract.__ERC721RaribleUser_init(
       collectionForm.name,
-      uri,
-      '',
-      '',
+      collectionForm.symbol,
+      'ipfs:/',
+      'ipfs:/' + uri,
       [],
       { from: account }
     )
@@ -308,7 +314,7 @@ export default function Setting (): React.ReactElement {
                 collection: event.target.value as number || -1
               }))}
             >
-              {chainId && [ChainId.Mainnet, ChainId.Ropsten, ChainId.Rinkeby].includes(chainId) && (
+              {chainId && [ChainId.Ropsten, ChainId.Rinkeby].includes(chainId) && (
                 <MenuItem value={-2}> {/* Only show for Mainnet, Ropsten and Rinkeby */}
                   <Tooltip title="Rarible Protocol provides a contract everyone can mint zir tokens. By using Rarible, you won't need to deploy your own contract, but the token name and symbol will use Rarible" placement="right">
                     <span>
@@ -320,7 +326,7 @@ export default function Setting (): React.ReactElement {
               )}
               {collections.map(collection => (
                 <MenuItem value={collection.id!} key={collection.id!}>
-                  {collection.name}
+                  {collection.name} ({ChainNameMap[collection.chainId as 1 | 4 | 3]})
                 </MenuItem>
               ))}
               <MenuItem onClick={() => setOpenCollectionForm(true)}><em>Create New Collection</em></MenuItem>
