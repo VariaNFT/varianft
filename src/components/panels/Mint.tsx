@@ -14,13 +14,31 @@ import {
   Button,
   Tooltip,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  CircularProgress,
 } from '@material-ui/core'
 import { ProjectContext, ProjectState } from '../../contexts/ProjectContext'
 import { IoOpenOutline } from 'react-icons/io5'
 import { AiOutlineLock, AiOutlineUnlock } from 'react-icons/ai'
+import { BsCheckCircle } from 'react-icons/bs'
 import openDataURL from '../../utils/openDataURL'
-import { AppContext } from '../../contexts/AppContext'
+import { AppAction, AppContext } from '../../contexts/AppContext'
 import { uploadViaProxy } from '../../utils/uploadToNFTStorage'
+import { useContractFunction, useEthers } from '@usedapp/core'
+import ERC721RaribleUser from '../../contracts/ERC721RaribleUser.json'
+import { Interface } from '@ethersproject/abi'
+import { CollectionContext } from '../../contexts/CollectionContext'
+import { getRaribleTokenId } from '../../utils/getRaribleTokenId'
+import { Contract } from 'ethers'
+
+const RaribleContract = new Interface(ERC721RaribleUser.abi)
 
 const COMMON_ATTRIBUTES = [
   'name',
@@ -85,6 +103,11 @@ const ButtonRow = styled.div`
   width: auto;
   text-align: right;
 `
+const ColoredListItemIcon = styled(ListItemIcon)`
+  &.MuiListItemIcon-root {
+    color: #4f9a94;
+  }
+  `
 
 function useMetadataGenerator (projectState: ProjectState): [Object, Object] {
   const table: { [name: string]: string } = {}
@@ -119,12 +142,22 @@ function useMetadataGenerator (projectState: ProjectState): [Object, Object] {
 
 export default function Mint (): React.ReactElement {
   const { projectState, setProjectState } = useContext(ProjectContext)!
-  const { appState } = useContext(AppContext)!
-  const [dataIndex, setDataIndex] = useState((projectState.usingData + 1).toString() || '')
+  const { appState, dispatchAppState } = useContext(AppContext)!
+  const { collections } = useContext(CollectionContext)!
+  const collection = collections.find(e => e.id === projectState.collection)
+
   const [table, metadata] = useMetadataGenerator(projectState)
+  const { chainId, account, activateBrowserWallet } = useEthers()
+
+  const [dataIndex, setDataIndex] = useState((projectState.usingData + 1).toString() || '')
   const [address, setAddress] = useState('')
   const [lockAddress, setLockAddress] = useState(false)
+  const [minting, setMinting] = useState(false)
   const [ipfs, setIpfs] = useState('')
+  const [tokenId, setTokenId] = useState('')
+
+  const ERC721RaribleContract = new Contract(collection?.address! || '0x0000000000000000000000000000000000000000', ERC721RaribleUser.abi)
+  const { state, send } = useContractFunction(ERC721RaribleContract, 'mintAndTransfer')
 
   useEffect(() => {
     const newIndex = parseInt(dataIndex)
@@ -147,7 +180,64 @@ export default function Mint (): React.ReactElement {
     if (address) setAddress(address)
   }, [lockAddress, projectState.usingData])
 
+  useEffect(() => {
+    if (!minting || state.status === 'Mining') return
+    else if (state.status === 'Exception') {
+      dispatchAppState({
+        action: AppAction.PUSH_TOAST,
+        payload: {
+          color: 'error',
+          message: 'Mint failed due to exception: ' + state.errorMessage,
+        }
+      })
+    } else if (state.status === 'Fail') {
+      dispatchAppState({
+        action: AppAction.PUSH_TOAST,
+        payload: {
+          color: 'error',
+          message: 'Mint failed due to revert',
+        }
+      })
+    } else if (state.status === 'Success') {
+      dispatchAppState({
+        action: AppAction.PUSH_TOAST,
+        payload: {
+          color: 'success',
+          message: 'Mint success',
+        }
+      })
+
+      // Drop minted data
+      const data = projectState.data
+      setProjectState(prev => ({
+        ...prev,
+        data: data.filter((_, index) => index !== projectState.usingData)
+      }))
+    }
+    setMinting(false)
+    setTokenId('')
+    setIpfs('')
+  }, [state])
+
   async function mintToken () {
+    if (!collection) return // error: collection not exists
+    if (!chainId || chainId !== collection.chainId) return // wrong network
+    if (!account) return // cannot get wallet
+
+    setMinting(true)
+    const getTokenId = getRaribleTokenId(chainId, collection.address, account)
+    const uploadToIPFS = uploadViaProxy(metadata, appState.previewCanvas!)
+    getTokenId.then(setTokenId)
+    uploadToIPFS.then(setIpfs)
+
+    const [tokenId, ipfs] = await Promise.all([getTokenId, uploadToIPFS])
+    send([
+      tokenId,
+      ipfs,
+      [[account, 10000]],
+      [],
+      ['0x'],
+    ], account)
   }
 
   return (
@@ -245,7 +335,7 @@ export default function Mint (): React.ReactElement {
         </Body>
       </Container>
       <Controls>
-          <Tooltip title="Autofill with 'address' column in csv file" placement="bottom">
+          <Tooltip title="Autofill with 'address' column in csv file, lock it if you want to mint to someone only" placement="bottom">
             <TextField
               style={{ width: '100%', marginBottom: '10px' }}
               label="Address"
@@ -281,13 +371,48 @@ export default function Mint (): React.ReactElement {
           {/* <Button variant="outlined" color="primary" size="small" style={{ marginRight: '10px' }}>
             Mint All
           </Button> */}
-          <Button variant="contained" color="primary" size="small" onClick={() => {
-            uploadViaProxy(metadata, appState.previewCanvas!).then(setIpfs)
-          }}>
+          <Button variant="contained" color="primary" size="small" onClick={mintToken}>
             Mint
           </Button>
         </ButtonRow>
       </Controls>
+      <Dialog open={minting} scroll="paper" fullWidth={true}>
+        <DialogTitle>Minting...</DialogTitle>
+        <DialogContent>
+          <List>
+            <ListItem>
+              <ColoredListItemIcon>
+                <BsCheckCircle size={25} />
+              </ColoredListItemIcon>
+              <ListItemText primary="Create file" />
+            </ListItem>
+            <ListItem>
+              <ColoredListItemIcon>
+                {ipfs.length
+                  ? <BsCheckCircle size={25} />
+                  : <CircularProgress size={25} />}
+              </ColoredListItemIcon>
+              <ListItemText primary="Upload to NFT.storage" />
+            </ListItem>
+            <ListItem>
+              <ColoredListItemIcon>
+                {tokenId.length
+                  ? <BsCheckCircle size={25} />
+                  : <CircularProgress size={25} />}
+              </ColoredListItemIcon>
+              <ListItemText primary="Obtain token id from Rarible" />
+            </ListItem>
+            <ListItem>
+              <ColoredListItemIcon>
+                <CircularProgress size={25} />
+              </ColoredListItemIcon>
+              <ListItemText primary="Submit transaction" />
+            </ListItem>
+          </List>
+        </DialogContent>
+        <DialogActions>
+        </DialogActions>
+      </Dialog>
     </Root>
   )
 }
