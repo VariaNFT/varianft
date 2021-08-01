@@ -6,8 +6,7 @@ import Toast from './components/Toast'
 import Projects from './components/panels/Projects'
 import Setting from './components/panels/Setting'
 import Sidebar from './components/Sidebar'
-import { AppContext } from './contexts/AppContext'
-import Page from './types/Page'
+import { AppContext, Page } from './contexts/AppContext'
 // @ts-ignore
 import MessengerCustomerChat from 'react-messenger-customer-chat'
 

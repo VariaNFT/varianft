@@ -12,8 +12,7 @@ import {
 } from '@material-ui/core'
 import { DatabaseContext } from '../../contexts/DatabaseContext'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { AppAction, AppContext } from '../../contexts/AppContext'
-import Page from '../../types/Page'
+import { AppAction, AppContext, Page } from '../../contexts/AppContext'
 import { ProjectContext } from '../../contexts/ProjectContext'
 import { useEthers } from '@usedapp/core'
 

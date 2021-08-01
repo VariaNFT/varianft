@@ -1,10 +1,9 @@
 import React, { useContext } from 'react'
 import styled, { css } from 'styled-components'
-import { AppAction, AppContext } from '../contexts/AppContext'
+import { AppAction, AppContext, Page } from '../contexts/AppContext'
 import { AiTwotoneFolderOpen } from 'react-icons/ai'
 import { GoGear } from 'react-icons/go'
 import { IoCreate, IoHelpCircle } from 'react-icons/io5'
-import Page from '../types/Page'
 
 const Root = styled.div`
   width: 82px;

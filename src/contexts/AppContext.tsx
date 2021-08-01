@@ -1,6 +1,11 @@
 import React, { createContext, Dispatch, useReducer } from 'react'
-import Page from '../types/Page'
 import { Color as AlertColor } from '@material-ui/lab/Alert'
+
+export enum Page {
+  PROJECT,
+  MINT,
+  SETTING,
+}
 
 interface AppState {
   usingProject: number | undefined
