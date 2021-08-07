@@ -234,6 +234,18 @@ export default function Mint (): React.ReactElement {
     setIpfs('')
   }, [state])
 
+  useEffect(() => {
+    if (projectState.id === -1) {
+      dispatchAppState({
+        action: AppAction.PUSH_TOAST,
+        payload: {
+          color: 'error',
+          message: 'You haven\'t open a project yet!'
+        }
+      })
+    }
+  }, [projectState.id])
+
   async function mintToken () {
     if (!collection) {
       return dispatchAppState({
