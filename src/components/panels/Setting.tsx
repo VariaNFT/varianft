@@ -376,7 +376,7 @@ export default function Setting (): React.ReactElement {
             <Tooltip title="Check out our document for details" placement="right">
               <a
                 style={{ float: 'right', fontSize: '.9rem', color: '#000', verticalAlign: 'middle' }}
-                href="https://docs.memberory.limaois.me/"
+                href="https://docs.varianft.studio/docs/guide/metadata"
                 target="_blank"
                 rel="noreferrer"
               >

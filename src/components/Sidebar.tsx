@@ -116,7 +116,7 @@ export default function Sidebar (): React.ReactElement {
           <IoCreate style={{ transform: 'translateX(1px) translateY(-2px)' }}/>
           <span>Mint</span>
         </Button>
-        <DocsButton href="https://docs.memberory.limaois.me/" target="_blank" referrerPolicy="no-referrer">
+        <DocsButton href="https://docs.varianft.studio/" target="_blank" referrerPolicy="no-referrer">
           <IoHelpCircle />
         </DocsButton>
       </Container>
