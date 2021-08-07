@@ -79,6 +79,12 @@ const DialogTextField = styled(TextField)`
     margin: 8px 0;
   }
 `
+const ProjectNameTextField = styled(TextField)`
+  width: 75%;
+  &.MuiFormControl-root {
+    vertical-align: middle;
+  }
+`
 
 interface CollectionData {
   name: string
@@ -288,6 +294,20 @@ export default function Setting (): React.ReactElement {
     <Root>
       <Container>
         <h2 style={{ marginBottom: '20px' }}>Setting</h2>
+        <InputRow>
+          <InputLabel>
+            Name:
+          </InputLabel>
+          <InputControl>
+            <ProjectNameTextField
+              value={projectState.name}
+              onChange={(event) => event.target.value && setProjectState(prev => ({
+                ...prev,
+                name: event.target.value
+              }))}
+            />
+          </InputControl>
+        </InputRow>
         <InputRow>
           <InputLabel>
             Template:
