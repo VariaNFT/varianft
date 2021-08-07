@@ -14,6 +14,7 @@ export function uploadViaProxy (meta: Object, image: HTMLCanvasElement | File): 
         resolve(data.tokenURI.replace(/^ipfs:\//, ''))
       }).catch(err => {
         if (err.response && err.response.status === 413) reject(new Error('File too large'))
+        else if (err.response && err.response.data && err.response.data.error) reject(new Error(err.response.data.error))
         else if (err.response && err.response.data) reject(new Error(err.response.data))
         else {
           reject(new Error('Unknown error'))
@@ -33,6 +34,7 @@ export function uploadViaProxy (meta: Object, image: HTMLCanvasElement | File): 
         resolve(data.tokenURI.replace(/^ipfs:\//, ''))
       }).catch(err => {
         if (err.response && err.response.status === 413) reject(new Error('File too large'))
+        else if (err.response && err.response.data && err.response.data.error) reject(new Error(err.response.data.error))
         else if (err.response && err.response.data) reject(new Error(err.response.data))
         else {
           reject(new Error('Unknown error'))

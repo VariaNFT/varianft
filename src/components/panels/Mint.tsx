@@ -270,14 +270,25 @@ export default function Mint (): React.ReactElement {
     getTokenId.then(setTokenId)
     uploadToIPFS.then(setIpfs)
 
-    const [tokenId, ipfs] = await Promise.all([getTokenId, uploadToIPFS])
-    send([
-      tokenId,
-      ipfs,
-      [[account, 10000]],
-      [],
-      ['0x'],
-    ], account)
+    try {
+      const [tokenId, ipfs] = await Promise.all([getTokenId, uploadToIPFS])
+      send([
+        tokenId,
+        ipfs,
+        [[account, 10000]],
+        [],
+        ['0x'],
+      ], account)
+    } catch (err) {
+      setMinting(false)
+      dispatchAppState({
+        action: AppAction.PUSH_TOAST,
+        payload: {
+          color: 'error',
+          message: 'Mint failed: ' + err.message
+        }
+      })
+    }
   }
 
   return (
