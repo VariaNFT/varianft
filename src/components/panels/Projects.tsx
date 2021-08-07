@@ -15,6 +15,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { AppAction, AppContext, Page } from '../../contexts/AppContext'
 import { ProjectContext } from '../../contexts/ProjectContext'
 import { useEthers } from '@usedapp/core'
+import defaultData from '../../contexts/defaultData.json'
 
 const Root = styled.div`
   width: 402px;
@@ -103,17 +104,11 @@ export default function Projects (): React.ReactElement {
   function createProject () {
     db.projects.add({
       name: newProjectName,
-      preview: 'https://i.imgur.com/pM68iou.jpeg', // Default preview img
-      svg: `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-          <path d="M30,1h40l29,29v40l-29,29h-40l-29-29v-40z" stroke="#000" fill="none"/>
-          <path d="M31,3h38l28,28v38l-28,28h-38l-28-28v-38z" fill="#a23"/>
-          <text x="50" y="68" font-size="48" fill="#FFF" text-anchor="middle"><![CDATA[410]]></text>
-        </svg>
-      `, // Default SVG Placeholder
-      csv: '',
-      data: [],
-      attributes: {},
+      preview: defaultData.preview, // Default preview img
+      svg: defaultData.svg,
+      csv: defaultData.csv,
+      data: defaultData.data,
+      attributes: defaultData.attributes,
       collection: -1,
     }).then(id => {
       dispatchAppState({

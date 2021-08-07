@@ -46,22 +46,6 @@ export function ProjectContextProvider (props: {children: React.ReactElement}) {
     })
   }
 
-  useEffect(() => {
-    if (!inited) return setInited(true)
-    console.log(state)
-    db.projects.update(state, state).then(status => {
-      if (status === 0) {
-        dispatchAppState({
-          action: AppAction.PUSH_TOAST,
-          payload: {
-            color: 'error',
-            message: 'You haven\'t open a project yet!'
-          }
-        })
-      }
-    })
-  }, [state])
-
   return (
     <ProjectContext.Provider value={{
       projectState: state,

@@ -129,6 +129,18 @@ export default function Setting (): React.ReactElement {
     }))
   }, [JSON.stringify(attributes)])
 
+  useEffect(() => {
+    if (projectState.id === -1) {
+      dispatchAppState({
+        action: AppAction.PUSH_TOAST,
+        payload: {
+          color: 'error',
+          message: 'You haven\'t open a project yet!'
+        }
+      })
+    }
+  }, [projectState.id])
+
   function handleAttributeKeyChange (index: number) {
     return (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       let copy = [...attributes]
