@@ -214,16 +214,17 @@ export default function Setting (): React.ReactElement {
     setCollectionCreating(0)
 
     const raribleUser = new ContractFactory(new Interface(ERC721RaribleUser.abi), ERC721RaribleUser.bytecode, library.getSigner())
-    const [uri, contract] = await Promise.all([
-      uploadViaProxy(collectionForm, collectionImage.current?.files[0]).then(any => {
-        setCollectionCreating(prev => prev + 1)
-        return any
-      }),
-      raribleUser.deploy().then(any => {
-        setCollectionCreating(prev => prev + 1)
-        return any
-      }),
-    ])
+    // TODO: following two promise can be parallel but if contract created and
+    //       file upload failed, it should use created one instead of deploy another
+    const uri = await uploadViaProxy(collectionForm, collectionImage.current?.files[0]).then(any => {
+      setCollectionCreating(prev => prev + 1)
+      return any
+    })
+
+    const contract = await raribleUser.deploy().then(any => {
+      setCollectionCreating(prev => prev + 1)
+      return any
+    })
 
     const tx = await contract.__ERC721RaribleUser_init(
       collectionForm.name,
@@ -265,6 +266,22 @@ export default function Setting (): React.ReactElement {
     })
     setCollectionImageFileName('')
     collectionImage.current.value = ''
+  }
+
+  async function tryDeployCollection () {
+    try {
+      await deployCollection()
+    } catch (err) {
+      console.log(err)
+      dispatchAppState({
+        action: AppAction.PUSH_TOAST,
+        payload: {
+          color: 'error',
+          message: 'Deploy failed: ' + err.message,
+        }
+      })
+      setCollectionCreating(-1)
+    }
   }
 
   return (
@@ -314,7 +331,7 @@ export default function Setting (): React.ReactElement {
                 collection: event.target.value as number || -1
               }))}
             >
-              {chainId && [ChainId.Ropsten, ChainId.Rinkeby].includes(chainId) && (
+              {chainId && [ChainId.Mainnet, ChainId.Ropsten, ChainId.Rinkeby].includes(chainId) && (
                 <MenuItem value={-2}> {/* Only show for Mainnet, Ropsten and Rinkeby */}
                   <Tooltip title="Rarible Protocol provides a contract everyone can mint zir tokens. By using Rarible, you won't need to deploy your own contract, but the token name and symbol will use Rarible" placement="right">
                     <span>
@@ -503,7 +520,7 @@ export default function Setting (): React.ReactElement {
           <Button color="default" onClick={() => setOpenCollectionForm(false)} disabled={collectionCreating >= 0}>
             Cancel
           </Button>
-          <Button color="primary" onClick={deployCollection} disabled={collectionCreating >= 0}>
+          <Button color="primary" onClick={tryDeployCollection} disabled={collectionCreating >= 0}>
             {collectionCreating >= 0 ? `Creating... (${collectionCreating}/4)` : 'Create'}
           </Button>
         </DialogActions>

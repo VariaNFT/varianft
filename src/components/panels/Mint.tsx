@@ -53,6 +53,7 @@ const ChainNameMap = {
 }
 
 const PublicContractMap = {
+  [ChainId.Mainnet]: '0xF6793dA657495ffeFF9Ee6350824910Abc21356C',
   [ChainId.Rinkeby]: '0x6ede7f3c26975aad32a475e1021d8f6f39c89d82',
   [ChainId.Ropsten]: '0xB0EA149212Eb707a1E5FC1D2d3fD318a8d94cf05',
 }
