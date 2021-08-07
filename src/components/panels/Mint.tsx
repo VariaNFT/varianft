@@ -291,7 +291,7 @@ export default function Mint (): React.ReactElement {
         [[account, 10000]],
         [],
         ['0x'],
-      ], account)
+      ], address)
     } catch (err) {
       setMinting(false)
       dispatchAppState({
