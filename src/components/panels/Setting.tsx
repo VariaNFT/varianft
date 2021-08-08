@@ -388,7 +388,7 @@ export default function Setting (): React.ReactElement {
             <Tooltip title="Check out our document for details" placement="right">
               <a
                 style={{ float: 'right', fontSize: '.9rem', color: '#000', verticalAlign: 'middle' }}
-                href="https://docs.varianft.studio/docs/guide/metadata"
+                href="https://docs.varianft.studio/docs/metadata-guide"
                 target="_blank"
                 rel="noreferrer"
               >
@@ -476,7 +476,7 @@ export default function Setting (): React.ReactElement {
         if (collectionCreating === -1) setOpenCollectionForm(false)
       }} scroll="paper" fullWidth={true}>
         <DialogTitle>
-          Create Collection
+          Create a Collection
           <Tooltip title="Check out Opensea's document for details" placement="right">
             <a
               style={{ float: 'right', color: '#000', verticalAlign: 'middle' }}
