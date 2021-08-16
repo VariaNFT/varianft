@@ -46,6 +46,16 @@ export function ProjectContextProvider (props: {children: React.ReactElement}) {
     })
   }
 
+  useEffect(() => {
+    db.projects.update(state, state).then(status => {
+      if (status === 0) {
+        console.warn('Not update')
+      } else {
+        console.log(state)
+      }
+    })
+  }, [state])
+
   return (
     <ProjectContext.Provider value={{
       projectState: state,
