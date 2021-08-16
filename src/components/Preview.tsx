@@ -87,7 +87,7 @@ export default function Preview (): React.ReactElement {
 
           // Firefox Fix for SVGs without height and width, use last 2 value of view box
           if ((!$svgElement.attr('width') || !$svgElement.attr('height')) && $svgElement.attr('viewBox')) {
-            const { width, height } = $svgElement.attr('viewBox')?.match(/\d+ \d+ (?<width>\d+) (?<height>\d+)/)?.groups || { width: 0, height: 0 }
+            const { width, height } = $svgElement.attr('viewBox')?.match(/\d+ \d+ (?<width>[\d.]+) (?<height>[\d.]+)/)?.groups || { width: 0, height: 0 }
             $svgElement.attr('width', width)
             $svgElement.attr('height', height)
           }
