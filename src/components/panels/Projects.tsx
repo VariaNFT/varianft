@@ -110,14 +110,10 @@ export default function Projects (): React.ReactElement {
       data: defaultData.data,
       attributes: defaultData.attributes,
       collection: -1,
-    }).then(id => {
+    }).then(async (id) => {
       dispatchAppState({
         action: AppAction.OPEN_PROJECT,
         payload: { projectId: id }
-      })
-      dispatchAppState({
-        action: AppAction.SWITCH_PAGE,
-        payload: { page: Page.SETTING }
       })
       setNewProjectName('')
       dispatchAppState({
@@ -127,7 +123,11 @@ export default function Projects (): React.ReactElement {
           message: 'Successfully Created Project!'
         }
       })
-      loadProject(id)
+      await loadProject(id)
+      dispatchAppState({
+        action: AppAction.SWITCH_PAGE,
+        payload: { page: Page.SETTING }
+      })
     }).catch(err => {
       setOpenForm(false)
       console.error(err)
