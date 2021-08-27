@@ -1,6 +1,6 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState, MouseEvent } from 'react'
 import styled from 'styled-components'
-import { AiOutlinePlus } from 'react-icons/ai'
+import { AiOutlinePlus, AiOutlineClose } from 'react-icons/ai'
 import {
   Card,
   Dialog,
@@ -9,6 +9,7 @@ import {
   TextField,
   DialogActions,
   Button,
+  DialogContentText,
 } from '@material-ui/core'
 import { DatabaseContext } from '../../contexts/DatabaseContext'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -30,6 +31,9 @@ const Container = styled.div`
   min-height: 100%;
   padding: 30px 20px 90px;
   position: relative;
+  > button {
+    position: relative;
+  }
 `
 const ProjectCard = styled.button`
   background: transparent;
@@ -77,6 +81,19 @@ const CreateProjectButton = styled.button`
     vertical-align: middle;
   }
 `
+const RemoveBtn = styled.button`
+  background: transparent;
+  border: none;
+  opacity: 0.2;
+  transition: opacity .2s;
+  position: absolute;
+  right: 5px;
+  top: 5px;
+
+  :hover {
+    opacity: 1;
+  }
+`
 
 export default function Projects (): React.ReactElement {
   const db = useContext(DatabaseContext)!
@@ -86,6 +103,7 @@ export default function Projects (): React.ReactElement {
     () => db.projects.toArray()
   )
   const [openForm, setOpenForm] = useState(false)
+  const [removeProject, setRemoveProject] = useState(0)
   const [newProjectName, setNewProjectName] = useState('')
 
   const { activateBrowserWallet, error } = useEthers()
@@ -141,6 +159,23 @@ export default function Projects (): React.ReactElement {
     })
   }
 
+  function clickRemoveProject (event: MouseEvent<HTMLButtonElement>, projectId: number): void {
+    event.stopPropagation()
+    setRemoveProject(projectId)
+  }
+
+  function confirmRemoveProject (): void {
+    db.projects.delete(removeProject)
+      .then(() => {
+        setRemoveProject(0)
+        dispatchAppState({
+          action: AppAction.OPEN_PROJECT,
+          payload: { projectId: -1 }
+        })
+        loadProject(-1)
+      })
+  }
+
   return (
     <Root>
       <Container>
@@ -154,6 +189,9 @@ export default function Projects (): React.ReactElement {
             })
             loadProject(project.id!)
           }}>
+            <RemoveBtn onClick={(event) => clickRemoveProject(event, project.id!)}>
+              <AiOutlineClose />
+            </RemoveBtn>
             <PreviewImg img={project.preview}/>
             <ProjectInfo>{project.name}</ProjectInfo>
           </Card>
@@ -179,6 +217,22 @@ export default function Projects (): React.ReactElement {
           </Button>
           <Button color="primary" onClick={createProject}>
             Create
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={removeProject > 0} onClose={() => setRemoveProject(0)} scroll="paper" fullWidth={true}>
+        <DialogTitle>Remove Project</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            You are going to remove the project <b>{projects?.find(e => e.id === removeProject)?.name}</b>. This action cannot be undone, are you sure?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button color="default" onClick={() => setRemoveProject(0)}>
+            Cancel
+          </Button>
+          <Button color="secondary" onClick={() => confirmRemoveProject()}>
+            Yes, Delete It
           </Button>
         </DialogActions>
       </Dialog>

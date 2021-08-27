@@ -34,6 +34,19 @@ export function ProjectContextProvider (props: {children: React.ReactElement}) {
     usingData: 0,
   })
   function loadProject (projectId: number) {
+    if (projectId === -1) {
+      return setState({
+        id: -1,
+        name: '',
+        preview: '',
+        svg: '',
+        csv: '',
+        data: [],
+        attributes: {},
+        collection: -1, // -2 for Rarible
+        usingData: 0,
+      })
+    }
     return db.projects.get(projectId).then(project => {
       if (project) {
         setState({

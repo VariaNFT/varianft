@@ -230,6 +230,7 @@ export default function Mint (): React.ReactElement {
         ...prev,
         data: data.filter((_, index) => index !== projectState.usingData)
       }))
+      if (+dataIndex > data.length - 1 && +dataIndex > 1) setDataIndex(idx => (+idx - 1).toString())
     }
     setMinting(false)
     setTokenId('')
