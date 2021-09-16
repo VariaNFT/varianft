@@ -24,6 +24,6 @@ export async function loadImageAsDataUrl (src: string, defaultSize: {width: numb
       reject(canvas.toDataURL())
       canvas.remove()
     }
-    img.src = src
+    img.src = 'https://img-proxy.varianft.studio/' + src
   })
 }
